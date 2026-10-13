@@ -10,6 +10,12 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+### Changed
+
+- Quieter logs: a printer or webcam that stays out of reach, or a Klipper that
+  does not answer, is reported once when it fails and once when it is back,
+  no longer at every reconnection attempt.
+
 ## [1.0.0] - 2026-10-13
 
 ### Added

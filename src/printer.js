@@ -126,6 +126,10 @@ export class PrinterLink extends EventEmitter {
     this.metadata = { file: null, estimatedTime: null };
     this.connected = false;
     this.lastError = '';
+    // 'unreachable' | 'unauthorized' while the link is down: a change is logged.
+    this.failureKind = null;
+    // Reading the printer failed: retries are logged at debug only.
+    this.readFailing = false;
     this.running = false;
     this.generation = 0;
     this.timers = new Set();
@@ -168,9 +172,11 @@ export class PrinterLink extends EventEmitter {
   // --- Connection -----------------------------------------------------------
 
   #onOpen() {
+    const recovered = this.lastError !== '';
     this.connected = true;
     this.lastError = '';
-    logger.info(`Printer ${this.slot}: connected to Moonraker`);
+    this.failureKind = null;
+    logger.info(`Printer ${this.slot}: connected to Moonraker${recovered ? ' again' : ''}`);
     this.#initialize();
   }
 
@@ -184,11 +190,16 @@ export class PrinterLink extends EventEmitter {
     clearInterval(this.cameraTimer);
     this.cameraTimer = null;
     const firstFailure = this.lastError === '';
-    if (this.lastError !== reason.message) {
-      logger.warn(`Printer ${this.slot}: ${reason.message}`);
-    }
-    this.lastError = reason.message;
     const state = reason.kind === 'unauthorized' ? 'unauthorized' : 'unreachable';
+    // One line when the link is lost (or a key starts or stops being refused),
+    // not one per reconnection attempt: those are at debug (RpcLink).
+    if (firstFailure || this.failureKind !== state) {
+      logger.warn(`Printer ${this.slot}: ${reason.message}`);
+    } else if (this.lastError !== reason.message) {
+      logger.debug(`Printer ${this.slot}: ${reason.message}`);
+    }
+    this.failureKind = state;
+    this.lastError = reason.message;
     if (wasConnected || this.snapshot.state !== state || firstFailure) {
       // The last known values stay; only the state says Moonraker is gone.
       this.#setSnapshot({ ...this.snapshot, state }, { immediate: true });
@@ -257,6 +268,7 @@ export class PrinterLink extends EventEmitter {
       this.status = mergeStatus({}, subscribed?.status);
       this.#applyStatus({ immediate: true });
       this.#startCamera();
+      this.readFailing = false;
       logger.info(
         `Printer ${this.slot}: Klipper ready (${capabilities.heaters.length} heaters, ` +
           `${capabilities.sensors.length} sensors, ${capabilities.macros.length} macros` +
@@ -275,8 +287,14 @@ export class PrinterLink extends EventEmitter {
         this.rpc.reset(err);
         return;
       }
-      // Klipper not answering (stuck, restarting): try again shortly.
-      logger.warn(`Printer ${this.slot}: cannot read the printer (${err.message})`);
+      // Klipper not answering (stuck, restarting): try again shortly. Logged
+      // once (warn) until Klipper is ready again ("Klipper ready", info).
+      if (this.readFailing) {
+        logger.debug(`Printer ${this.slot}: cannot read the printer (${err.message})`);
+      } else {
+        logger.warn(`Printer ${this.slot}: cannot read the printer (${err.message}), retrying`);
+      }
+      this.readFailing = true;
       this.#onKlippyState('disconnected', err.message);
       this.#later(() => current() && this.#initialize(), this.timings.klippyRetry);
     }

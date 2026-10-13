@@ -46,6 +46,33 @@ test('one device per Moonraker, its states, and nothing polled by Gladys', async
   assert.ok(!device.features.some((f) => f.category === 'temperature-sensor'), 'no room sensor');
 });
 
+test('states follow the pushes of Moonraker without any poll; onPoll is only a fallback', async (t) => {
+  // Gladys#3198: core 5.2.0 never polls a device created without should_poll.
+  // Nothing may wait for onPoll: Moonraker pushes, the integration publishes.
+  const world = await createWorld();
+  t.after(() => world.app.stop());
+  const fake = world.gladys.fake;
+  const [server] = world.servers;
+  const poll = t.mock.method(world.hub, 'poll');
+  assert.equal(deviceOf(world).should_poll, false);
+  assert.equal(deviceOf(world).poll_frequency, undefined);
+  server.update({ extruder: { temperature: 187, target: 210 } });
+  await settle();
+  assert.equal(fake.lastState(featureId('extruder_temperature')), 187);
+  assert.equal(fake.lastState(featureId('extruder_target')), 210);
+  server.setPrintState('printing', { filename: 'benchy.gcode' });
+  await settle();
+  assert.equal(fake.lastState(featureId('state')), 'Impression');
+  assert.equal(poll.mock.callCount(), 0, 'refreshed without a single onPoll');
+  // A Gladys that polls anyway gets the states again.
+  world.gladys.forgetPublishedStates();
+  const before = fake.states.length;
+  const ack = await fake.poll(deviceOf(world));
+  assert.equal(ack.success, true);
+  assert.equal(poll.mock.callCount(), 1);
+  assert.ok(fake.states.length > before, 'onPoll republishes');
+});
+
 test('a richer printer: two nozzles, a heated chamber, a host sensor, a webcam', async (t) => {
   const server = createMoonraker({ printer: 'rich', image: JPEG });
   const world = await createWorld({ servers: [server] });

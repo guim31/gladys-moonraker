@@ -145,6 +145,8 @@ export class Hub {
       link,
       capabilities: known?.capabilities ?? null,
       lastError: '',
+      publishFailing: false,
+      cameraError: null,
     };
     this.printers.set(slot, printer);
     link.on('capabilities', (capabilities) => this.#onCapabilities(printer, capabilities));
@@ -217,7 +219,18 @@ export class Hub {
     try {
       await this.gladys.publishChangedStates(states);
     } catch (err) {
-      logger.warn(`Cannot publish the states of printer ${printer.slot}: ${err.message}`);
+      // Once per outage (warn), not once per update.
+      if (printer.publishFailing) {
+        logger.debug(`Cannot publish the states of printer ${printer.slot}: ${err.message}`);
+      } else {
+        logger.warn(`Cannot publish the states of printer ${printer.slot}: ${err.message}`);
+      }
+      printer.publishFailing = true;
+      return;
+    }
+    if (printer.publishFailing) {
+      printer.publishFailing = false;
+      logger.info(`States of printer ${printer.slot} published again`);
     }
   }
 
@@ -492,11 +505,17 @@ export class Hub {
       const image = await printer.link.cameraImage(MAX_IMAGE_BYTES);
       await this.gladys.publishCameraImage(ids.feature('camera'), image);
     } catch (err) {
-      if (printer.cameraError !== err.message) {
+      // Once per outage (warn), not once per image round.
+      if (printer.cameraError === null) {
         logger.warn(`Printer ${printer.slot}: no webcam image (${err.message})`);
+      } else if (printer.cameraError !== err.message) {
+        logger.debug(`Printer ${printer.slot}: no webcam image (${err.message})`);
       }
       printer.cameraError = err.message;
       return;
+    }
+    if (printer.cameraError !== null) {
+      logger.info(`Printer ${printer.slot}: webcam image back`);
     }
     printer.cameraError = null;
   }

@@ -46,7 +46,8 @@ src/store.js                      /data/moonraker-state.json (capabilities of ea
 gladys-assistant-integration.json manifest: name, config_schema, actions, image...
 docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (en and fr mandatory)
 test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
-                                  and helpers/fakeMoonraker.js (recorded Moonraker answers)
+                                  and helpers/fakeMoonraker.js (recorded Moonraker answers);
+                                  logs.test.js: what the logs say at info (lifecycle only)
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -116,6 +117,12 @@ code de ce dépôt. Compléter ce fichier quand un nouveau piège est découvert
   15000, 30000, 60000). Le template publie `poll_frequency: 300` sans `should_poll` : c'est faux,
   le cœur répond 400 à la découverte. Pour une cadence hors liste, publier `should_poll: false` et
   pousser les états depuis le conteneur, en gardant un `onPoll` de repli.
+- **Polling, issue GladysAssistant/Gladys#3198** (correctif #3199 pas encore publié) : le cœur
+  5.2.0 ne sonde pas, et les appareils **déjà créés** sans `should_poll` ne seront **jamais**
+  sondés, même après le correctif. Rien ne doit dépendre du seul polling du cœur : l'intégration
+  rafraîchit elle-même ses états (minuteur interne, ou ici le flux poussé par Moonraker) et garde
+  `onPoll` comme repli. Ici : `should_poll: false`, états publiés à chaque `notify_status_update` ;
+  `test/hub.test.js` vérifie qu'ils suivent sans un seul `onPoll`.
 - **`min` et `max` sont NOT NULL** dans `t_device_feature`, y compris pour `text/text` : sans eux,
   « Ajouter à Gladys » échoue en HTTP 422. Mettre 0/0, comme Zigbee2MQTT.
 - Un état publié sur une fonctionnalité **pas encore ajoutée** dans Gladys reçoit un 200 puis est
@@ -142,6 +149,12 @@ code de ce dépôt. Compléter ce fichier quand un nouveau piège est découvert
   fonctionnalité. `gauge_min`/`gauge_max` ne pilotent que les couleurs, et le cœur n'applique
   jamais `min`/`max` en écriture : ce sont des bornes d'affichage. Une valeur signée exige des
   bornes symétriques.
+- **Logs** (`docker logs`, niveau `info` par défaut, `LOG_LEVEL=debug` pour le reste) : en `info`,
+  le cycle de vie seulement (démarrage, connexion, perte et retour d'une imprimante, événements
+  d'impression, une ligne par action). Rien par mise à jour poussée, par état publié ni par tentative
+  de reconnexion. Une panne répétée : un `warn` au premier échec, un `info` au rétablissement, le
+  reste en `debug`. `test/logs.test.js` capture `console.log`/`console.error` (le logger du SDK) et
+  le vérifie.
 - Le cœur plafonne à **300 états par minute** et réévalue les scènes à chaque état : ne publier
   que les changements.
 - Une intégration `device` ne reçoit pas la langue de l'utilisateur, une action de scène non
