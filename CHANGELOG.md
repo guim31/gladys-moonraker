@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-10-13
+
 ### Changed
 
 - Quieter logs: a printer or webcam that stays out of reach, or a Klipper that
@@ -39,5 +41,6 @@ the notes of the version's GitHub Release.
 - "Test the connection" action: the state and the macros of each printer.
 - Texts and documentation in English, French, German and Spanish.
 
-[Unreleased]: https://github.com/guim31/gladys-moonraker/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/guim31/gladys-moonraker/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/guim31/gladys-moonraker/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/guim31/gladys-moonraker/releases/tag/v1.0.0

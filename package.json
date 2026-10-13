@@ -1,6 +1,6 @@
 {
   "name": "gladys-moonraker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Moonraker (Klipper) integration for Gladys Assistant: follow and control 3D prints.",
   "type": "module",
