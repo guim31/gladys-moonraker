@@ -114,6 +114,15 @@ export class RpcLink extends EventEmitter {
     this.#drop(new MoonrakerError('closed', 'Link stopped'), { notify: false });
   }
 
+  /** Drop the connection (Moonraker refused a request) and retry later. */
+  reset(reason) {
+    if (!this.running || !this.socket) {
+      return;
+    }
+    this.#drop(reason);
+    this.#scheduleRetry(reason);
+  }
+
   /**
    * One JSON-RPC request. Rejects with a MoonrakerError.
    * @param {string} method

@@ -54,6 +54,34 @@ const EMPTY_SNAPSHOT = {
   fan: null,
 };
 
+/** The body of a response, or null when it is longer than `limit` bytes. */
+async function readAtMost(response, limit) {
+  const declared = Number(response.headers.get('content-length'));
+  if (Number.isFinite(declared) && declared > limit) {
+    await response.body?.cancel().catch(() => {});
+    return null;
+  }
+  if (!response.body) {
+    return Buffer.alloc(0);
+  }
+  const reader = response.body.getReader();
+  const chunks = [];
+  let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+    size += value.length;
+    if (size > limit) {
+      await reader.cancel().catch(() => {});
+      return null;
+    }
+    chunks.push(value);
+  }
+  return Buffer.concat(chunks);
+}
+
 /** An Error with a `code` the callers turn into a message. */
 export function codedError(code, message) {
   const err = new Error(message);
@@ -180,8 +208,9 @@ export class PrinterLink extends EventEmitter {
       if (!current()) {
         return;
       }
-      this.klippyState = server?.klippy_state ?? 'disconnected';
-      if (this.klippyState !== 'ready') {
+      const klippyState = server?.klippy_state ?? 'disconnected';
+      if (klippyState !== 'ready') {
+        this.klippyState = klippyState;
         let message = '';
         if (['shutdown', 'error'].includes(this.klippyState)) {
           // Why Klipper stopped ("Heater extruder not heating at expected rate").
@@ -222,6 +251,9 @@ export class PrinterLink extends EventEmitter {
       if (!current()) {
         return;
       }
+      // Ready only now: a stale webhooks state of the previous run must not be
+      // read in between (it would flip Klipper back to disconnected).
+      this.klippyState = 'ready';
       this.status = mergeStatus({}, subscribed?.status);
       this.#applyStatus({ immediate: true });
       this.#startCamera();
@@ -238,7 +270,9 @@ export class PrinterLink extends EventEmitter {
         return; // the link reconnects and runs this again
       }
       if (err.kind === 'unauthorized') {
-        this.#onClose(err);
+        // Refused after a successful identification: drop the link, the
+        // RpcLink retries (slowly) and reports the refusal.
+        this.rpc.reset(err);
         return;
       }
       // Klipper not answering (stuck, restarting): try again shortly.
@@ -367,7 +401,14 @@ export class PrinterLink extends EventEmitter {
       const value = metadata?.estimated_time;
       estimatedTime =
         typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null;
-    } catch {
+    } catch (err) {
+      if (['timeout', 'closed', 'unreachable'].includes(err.kind)) {
+        // No answer: asked again on a next update.
+        if (this.metadata.reading === file) {
+          this.metadata.reading = null;
+        }
+        return;
+      }
       // No metadata (a file printed from elsewhere, an unsupported slicer).
     }
     if (this.metadata.reading !== file) {
@@ -560,9 +601,19 @@ export class PrinterLink extends EventEmitter {
       );
     }
     if (response.status !== 200) {
+      await response.body?.cancel().catch(() => {});
       throw codedError('camera_unreachable', `Webcam answered HTTP ${response.status}`);
     }
-    const data = Buffer.from(await response.arrayBuffer());
+    // Base64 grows the bytes by 4/3: anything larger cannot fit. Read no more
+    // than that (a stream URL by mistake would never end).
+    const limit = Math.floor((maxBytes * 3) / 4);
+    const data = await readAtMost(response, limit);
+    if (data === null) {
+      throw codedError(
+        'camera_size',
+        `The webcam image is larger than ${Math.round(limit / 1024)} KB`,
+      );
+    }
     const isJpeg = data.length > 3 && data[0] === 0xff && data[1] === 0xd8 && data[2] === 0xff;
     if (!isJpeg) {
       throw codedError('camera_format', 'The webcam image is not a JPEG');

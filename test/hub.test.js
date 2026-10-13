@@ -570,3 +570,58 @@ test('snapshot addresses: relative to the web server, or naming the Pi itself', 
   );
   assert.equal(link('http://192.0.2.10:7125', 'rtsp://192.0.2.10/stream'), null);
 });
+
+test('refused after the identification: the link is dropped and retried, then recovers', async (t) => {
+  const server = createMoonraker();
+  server.overrides['server.info'] = () => ({ error: ERRORS.unauthorized });
+  const world = await createWorld({ servers: [server] });
+  t.after(() => world.app.stop());
+  assert.equal(world.hub.printers.get(1).link.snapshot.state, 'unauthorized');
+  const identifies = server.callsOf('server.connection.identify').length;
+  delete server.overrides['server.info']; // the user trusted the network of Gladys
+  await wait(250);
+  await settle(40);
+  assert.ok(server.callsOf('server.connection.identify').length > identifies, 'retried');
+  assert.equal(world.gladys.fake.lastState(featureId('state')), 'Prête');
+});
+
+test('a slicer estimate that did not answer is asked again', async (t) => {
+  const server = createMoonraker();
+  let calls = 0;
+  server.overrides['server.files.metadata'] = () => {
+    calls += 1;
+    return calls === 1 ? undefined : server.metadata; // first one never answers
+  };
+  const world = await createWorld({ servers: [server] });
+  t.after(() => world.app.stop());
+  server.setPrintState('printing', { filename: server.metadata.filename });
+  await wait(250);
+  server.update({ display_status: { progress: 0.5 } });
+  await settle();
+  assert.equal(calls, 2);
+  assert.equal(
+    world.hub.printers.get(1).link.metadata.estimatedTime,
+    server.metadata.estimated_time,
+  );
+});
+
+test('a webcam address giving an endless stream is cut at the size limit', async (t) => {
+  const server = createMoonraker({ printer: 'rich', image: JPEG });
+  let pulled = 0;
+  server.snapshot = () =>
+    new Response(
+      new ReadableStream({
+        pull(controller) {
+          pulled += 1;
+          controller.enqueue(new Uint8Array(64 * 1024));
+        },
+      }),
+      { status: 200, headers: { 'content-type': 'multipart/x-mixed-replace' } },
+    );
+  const world = await createWorld({ servers: [server] });
+  t.after(() => world.app.stop());
+  const ack = await world.gladys.fake.getImage(deviceOf(world));
+  assert.equal(ack.success, false);
+  assert.match(ack.error, /dépasse 150 Ko/);
+  assert.ok(pulled < 10, `stopped reading (${pulled} chunks)`);
+});
