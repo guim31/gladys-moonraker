@@ -135,7 +135,8 @@ export class RpcLink extends EventEmitter {
         this.pending.delete(id);
         reject(new MoonrakerError('timeout', `No answer to ${method} within ${timeout} ms`));
       }, timeout);
-      timer.unref?.();
+      // Not unref'd: a request awaited by someone keeps the process alive
+      // until it settles (bounded by the timeout).
       this.pending.set(id, { resolve, reject, timer });
       const message = { jsonrpc: '2.0', method, id };
       if (params !== undefined) {
