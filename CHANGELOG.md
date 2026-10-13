@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-13
+
 ### Added
 
 - One Gladys device per Moonraker (Klipper) printer, up to three: state, file,
@@ -30,3 +32,6 @@ the notes of the version's GitHub Release.
   print), turn the heaters off, run a Klipper macro by name.
 - "Test the connection" action: the state and the macros of each printer.
 - Texts and documentation in English, French, German and Spanish.
+
+[Unreleased]: https://github.com/guim31/gladys-moonraker/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/guim31/gladys-moonraker/releases/tag/v1.0.0
