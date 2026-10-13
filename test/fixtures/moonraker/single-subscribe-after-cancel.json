@@ -1,0 +1,41 @@
+{
+  "eventtime": 380365.707389846,
+  "status": {
+    "webhooks": {
+      "state": "ready",
+      "state_message": "Printer is ready"
+    },
+    "print_stats": {
+      "filename": "gladys-cube.gcode",
+      "total_duration": 201.11421742697712,
+      "print_duration": 182.33626180700958,
+      "filament_used": 4,
+      "state": "cancelled",
+      "message": "",
+      "info": {
+        "total_layer": 3,
+        "current_layer": 1
+      }
+    },
+    "virtual_sdcard": {
+      "progress": 0,
+      "is_active": false,
+      "file_path": null
+    },
+    "display_status": {
+      "progress": 0,
+      "message": "CANCEL_PRINT called with"
+    },
+    "extruder": {
+      "temperature": 103.26,
+      "target": 0
+    },
+    "heater_bed": {
+      "temperature": 103.26,
+      "target": 60
+    },
+    "fan": {
+      "speed": 0
+    }
+  }
+}

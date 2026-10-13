@@ -1,0 +1,49 @@
+{
+  "eventtime": 381595.631392357,
+  "status": {
+    "webhooks": {
+      "state": "ready",
+      "state_message": "Printer is ready"
+    },
+    "print_stats": {
+      "filename": "",
+      "total_duration": 0,
+      "print_duration": 0,
+      "state": "standby",
+      "message": "",
+      "info": {
+        "total_layer": null,
+        "current_layer": null
+      }
+    },
+    "virtual_sdcard": {
+      "progress": 0,
+      "is_active": false
+    },
+    "display_status": {
+      "progress": 0
+    },
+    "extruder": {
+      "temperature": 0,
+      "target": 0
+    },
+    "extruder1": {
+      "temperature": 0,
+      "target": 0
+    },
+    "heater_bed": {
+      "temperature": 0,
+      "target": 0
+    },
+    "heater_generic chamber": {
+      "temperature": 0,
+      "target": 0
+    },
+    "temperature_sensor Raspberry Pi": {
+      "temperature": 27.8
+    },
+    "fan": {
+      "speed": 0
+    }
+  }
+}

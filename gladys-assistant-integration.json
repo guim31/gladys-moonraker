@@ -1,177 +1,904 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "Demo Devices Template",
+  "name": "Moonraker (Klipper)",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "Follow and control your Klipper 3D printers: progress, temperatures, alerts, macros.",
+    "fr": "Suivez et pilotez vos imprimantes 3D Klipper : progression, températures, alertes, macros.",
+    "de": "Verfolge und steuere deine Klipper-3D-Drucker: Fortschritt, Temperaturen, Alarme, Makros.",
+    "es": "Siga y controle sus impresoras 3D Klipper: progreso, temperaturas, alertas, macros."
   },
   "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
+  "docker_image": "ghcr.io/guim31/gladys-moonraker:1.0.0",
   "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
-  "transports": ["local", "cloud"],
+  "cover_image": "https://raw.githubusercontent.com/guim31/gladys-moonraker/main/cover.png",
+  "categories": ["appliances"],
+  "transports": ["local"],
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
-      "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+      "label": {
+        "en": "Connect your Klipper printer",
+        "fr": "Connecter votre imprimante Klipper",
+        "de": "Verbinde deinen Klipper-Drucker",
+        "es": "Conecte su impresora Klipper"
       },
-      "links": [
+      "description": {
+        "en": "Enter the address of Moonraker: the IP address of the printer (port 7125 by default), or the address you open Mainsail or Fluidd with. An API key is only needed when Moonraker does not trust your network. Up to three printers.",
+        "fr": "Saisissez l'adresse de Moonraker : l'adresse IP de l'imprimante (port 7125 par défaut), ou l'adresse avec laquelle vous ouvrez Mainsail ou Fluidd. Une clé d'API n'est utile que si Moonraker ne fait pas confiance à votre réseau. Jusqu'à trois imprimantes.",
+        "de": "Gib die Adresse von Moonraker ein: die IP-Adresse des Druckers (standardmäßig Port 7125) oder die Adresse, mit der du Mainsail oder Fluidd öffnest. Ein API-Schlüssel ist nur nötig, wenn Moonraker deinem Netzwerk nicht vertraut. Bis zu drei Drucker.",
+        "es": "Introduzca la dirección de Moonraker: la dirección IP de la impresora (puerto 7125 por defecto) o la dirección con la que abre Mainsail o Fluidd. Solo se necesita una clave de API si Moonraker no confía en su red. Hasta tres impresoras."
+      }
+    },
+    {
+      "key": "url_1",
+      "type": "string",
+      "label": {
+        "en": "Moonraker address",
+        "fr": "Adresse de Moonraker",
+        "de": "Moonraker-Adresse",
+        "es": "Dirección de Moonraker"
+      },
+      "placeholder": {
+        "en": "192.168.1.50 or http://voron.local",
+        "fr": "192.168.1.50 ou http://voron.local",
+        "de": "192.168.1.50 oder http://voron.local",
+        "es": "192.168.1.50 o http://voron.local"
+      },
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "api_key_1",
+      "type": "secret",
+      "label": {
+        "en": "API key (optional)",
+        "fr": "Clé d'API (facultatif)",
+        "de": "API-Schlüssel (optional)",
+        "es": "Clave de API (opcional)"
+      },
+      "description": {
+        "en": "Mainsail: Settings, Authorization, API key. Fluidd: Settings, Authentication. Leave empty on a trusted network.",
+        "fr": "Mainsail : Paramètres, Autorisation, clé d'API. Fluidd : Paramètres, Authentification. Laissez vide sur un réseau de confiance.",
+        "de": "Mainsail: Einstellungen, Autorisierung, API-Schlüssel. Fluidd: Einstellungen, Authentifizierung. Leer lassen in einem vertrauenswürdigen Netzwerk.",
+        "es": "Mainsail: Ajustes, Autorización, clave de API. Fluidd: Ajustes, Autenticación. Déjela vacía en una red de confianza."
+      },
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "section_2",
+      "type": "section",
+      "label": {
+        "en": "Printer 2 (optional)",
+        "fr": "Imprimante 2 (facultatif)",
+        "de": "Drucker 2 (optional)",
+        "es": "Impresora 2 (opcional)"
+      }
+    },
+    {
+      "key": "url_2",
+      "type": "string",
+      "label": {
+        "en": "Moonraker address 2",
+        "fr": "Adresse de Moonraker 2",
+        "de": "Moonraker-Adresse 2",
+        "es": "Dirección de Moonraker 2"
+      },
+      "placeholder": {
+        "en": "192.168.1.50 or http://voron.local",
+        "fr": "192.168.1.50 ou http://voron.local",
+        "de": "192.168.1.50 oder http://voron.local",
+        "es": "192.168.1.50 o http://voron.local"
+      },
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "api_key_2",
+      "type": "secret",
+      "label": {
+        "en": "API key 2 (optional)",
+        "fr": "Clé d'API 2 (facultatif)",
+        "de": "API-Schlüssel 2 (optional)",
+        "es": "Clave de API 2 (opcional)"
+      },
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "section_3",
+      "type": "section",
+      "label": {
+        "en": "Printer 3 (optional)",
+        "fr": "Imprimante 3 (facultatif)",
+        "de": "Drucker 3 (optional)",
+        "es": "Impresora 3 (opcional)"
+      }
+    },
+    {
+      "key": "url_3",
+      "type": "string",
+      "label": {
+        "en": "Moonraker address 3",
+        "fr": "Adresse de Moonraker 3",
+        "de": "Moonraker-Adresse 3",
+        "es": "Dirección de Moonraker 3"
+      },
+      "placeholder": {
+        "en": "192.168.1.50 or http://voron.local",
+        "fr": "192.168.1.50 ou http://voron.local",
+        "de": "192.168.1.50 oder http://voron.local",
+        "es": "192.168.1.50 o http://voron.local"
+      },
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "api_key_3",
+      "type": "secret",
+      "label": {
+        "en": "API key 3 (optional)",
+        "fr": "Clé d'API 3 (facultatif)",
+        "de": "API-Schlüssel 3 (optional)",
+        "es": "Clave de API 3 (opcional)"
+      },
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "section_options",
+      "type": "section",
+      "label": {
+        "en": "Options",
+        "fr": "Options",
+        "de": "Optionen",
+        "es": "Opciones"
+      },
+      "description": {
+        "en": "Language of the names and texts the integration creates (feature names are set when a device is added).",
+        "fr": "Langue des noms et textes créés par l'intégration (les noms des fonctionnalités sont fixés à l'ajout de l'appareil).",
+        "de": "Sprache der Namen und Texte, die die Integration erzeugt (Funktionsnamen werden beim Hinzufügen des Geräts festgelegt).",
+        "es": "Idioma de los nombres y textos que crea la integración (los nombres de las funciones se fijan al añadir el dispositivo)."
+      }
+    },
+    {
+      "key": "language",
+      "type": "select",
+      "label": {
+        "en": "Language",
+        "fr": "Langue",
+        "de": "Sprache",
+        "es": "Idioma"
+      },
+      "required": false,
+      "default": "fr",
+      "options": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "value": "en",
+          "label": {
+            "en": "English",
+            "fr": "Anglais",
+            "de": "Englisch",
+            "es": "Inglés"
+          }
+        },
+        {
+          "value": "fr",
+          "label": {
+            "en": "French",
+            "fr": "Français",
+            "de": "Französisch",
+            "es": "Francés"
+          }
+        },
+        {
+          "value": "de",
+          "label": {
+            "en": "German",
+            "fr": "Allemand",
+            "de": "Deutsch",
+            "es": "Alemán"
+          }
+        },
+        {
+          "value": "es",
+          "label": {
+            "en": "Spanish",
+            "fr": "Espagnol",
+            "de": "Spanisch",
+            "es": "Español"
+          }
         }
       ]
-    },
-    {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
-      },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
-      "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
-    },
-    {
-      "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
-      "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
-      },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
-    },
-    {
-      "key": "unit",
-      "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
-      "required": false,
-      "default": "celsius",
-      "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
-      ]
-    },
-    {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
-      "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
-      },
-      "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
-      "timeout_seconds": 30
-    },
-    {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ]
+      "key": "test_connection",
+      "label": {
+        "en": "Test the connection",
+        "fr": "Tester la connexion",
+        "de": "Verbindung testen",
+        "es": "Probar la conexión"
+      },
+      "description": {
+        "en": "State of each printer and the list of its macros.",
+        "fr": "État de chaque imprimante et liste de ses macros.",
+        "de": "Status jedes Druckers und Liste seiner Makros.",
+        "es": "Estado de cada impresora y lista de sus macros."
+      },
+      "timeout_seconds": 15
     }
   ],
   "scene_triggers": [
     {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
+      "key": "print_started",
+      "label": {
+        "en": "Print started",
+        "fr": "Impression démarrée",
+        "de": "Druck gestartet",
+        "es": "Impresión iniciada"
+      },
       "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+        "en": "A print started on the Klipper printer.",
+        "fr": "Une impression a démarré sur l'imprimante Klipper.",
+        "de": "Ein Druck wurde auf dem Klipper-Drucker gestartet.",
+        "es": "Se ha iniciado una impresión en la impresora Klipper."
       },
       "fields": [
         {
           "key": "device",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
+          "label": {
+            "en": "Printer",
+            "fr": "Imprimante",
+            "de": "Drucker",
+            "es": "Impresora"
+          }
+        }
+      ],
+      "variables": [
+        {
+          "key": "printer",
+          "type": "string",
+          "label": {
+            "en": "Printer name",
+            "fr": "Nom de l'imprimante",
+            "de": "Druckername",
+            "es": "Nombre de la impresora"
+          }
         },
         {
-          "key": "target",
+          "key": "file",
+          "type": "string",
+          "label": {
+            "en": "File",
+            "fr": "Fichier",
+            "de": "Datei",
+            "es": "Archivo"
+          }
+        }
+      ]
+    },
+    {
+      "key": "print_done",
+      "label": {
+        "en": "Print finished",
+        "fr": "Impression terminée",
+        "de": "Druck fertig",
+        "es": "Impresión terminada"
+      },
+      "description": {
+        "en": "A print finished successfully.",
+        "fr": "Une impression s'est terminée avec succès.",
+        "de": "Ein Druck wurde erfolgreich beendet.",
+        "es": "Una impresión ha terminado correctamente."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Printer",
+            "fr": "Imprimante",
+            "de": "Drucker",
+            "es": "Impresora"
+          }
+        }
+      ],
+      "variables": [
+        {
+          "key": "printer",
+          "type": "string",
+          "label": {
+            "en": "Printer name",
+            "fr": "Nom de l'imprimante",
+            "de": "Druckername",
+            "es": "Nombre de la impresora"
+          }
+        },
+        {
+          "key": "file",
+          "type": "string",
+          "label": {
+            "en": "File",
+            "fr": "Fichier",
+            "de": "Datei",
+            "es": "Archivo"
+          }
+        },
+        {
+          "key": "duration",
+          "type": "string",
+          "label": {
+            "en": "Print time",
+            "fr": "Durée d'impression",
+            "de": "Druckdauer",
+            "es": "Tiempo de impresión"
+          }
+        },
+        {
+          "key": "duration_minutes",
+          "type": "number",
+          "label": {
+            "en": "Print time (minutes)",
+            "fr": "Durée d'impression (minutes)",
+            "de": "Druckdauer (Minuten)",
+            "es": "Tiempo de impresión (minutos)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "print_failed",
+      "label": {
+        "en": "Print failed or cancelled",
+        "fr": "Impression échouée ou annulée",
+        "de": "Druck fehlgeschlagen oder abgebrochen",
+        "es": "Impresión fallida o cancelada"
+      },
+      "description": {
+        "en": "A print stopped before its end: cancelled, or an error (Klipper stopped included).",
+        "fr": "Une impression s'est arrêtée avant la fin : annulée, ou erreur (arrêt de Klipper compris).",
+        "de": "Ein Druck endete vorzeitig: abgebrochen oder Fehler (auch ein Klipper-Stopp).",
+        "es": "Una impresión se ha detenido antes de terminar: cancelada o error (incluida una parada de Klipper)."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Printer",
+            "fr": "Imprimante",
+            "de": "Drucker",
+            "es": "Impresora"
+          }
+        },
+        {
+          "key": "reason",
           "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
+          "label": {
+            "en": "Reason",
+            "fr": "Raison",
+            "de": "Grund",
+            "es": "Motivo"
+          },
           "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
+            {
+              "value": "cancelled",
+              "label": {
+                "en": "Cancelled",
+                "fr": "Annulée",
+                "de": "Abgebrochen",
+                "es": "Cancelada"
+              }
+            },
+            {
+              "value": "error",
+              "label": {
+                "en": "Error",
+                "fr": "Erreur",
+                "de": "Fehler",
+                "es": "Error"
+              }
+            }
           ]
         }
       ],
       "variables": [
         {
-          "key": "target",
+          "key": "printer",
           "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
+          "label": {
+            "en": "Printer name",
+            "fr": "Nom de l'imprimante",
+            "de": "Druckername",
+            "es": "Nombre de la impresora"
+          }
+        },
+        {
+          "key": "file",
+          "type": "string",
+          "label": {
+            "en": "File",
+            "fr": "Fichier",
+            "de": "Datei",
+            "es": "Archivo"
+          }
+        },
+        {
+          "key": "duration",
+          "type": "string",
+          "label": {
+            "en": "Print time",
+            "fr": "Durée d'impression",
+            "de": "Druckdauer",
+            "es": "Tiempo de impresión"
+          }
+        },
+        {
+          "key": "duration_minutes",
+          "type": "number",
+          "label": {
+            "en": "Print time (minutes)",
+            "fr": "Durée d'impression (minutes)",
+            "de": "Druckdauer (Minuten)",
+            "es": "Tiempo de impresión (minutos)"
+          }
+        },
+        {
+          "key": "reason",
+          "type": "string",
+          "label": {
+            "en": "Reason (cancelled or error)",
+            "fr": "Raison (cancelled ou error)",
+            "de": "Grund (cancelled oder error)",
+            "es": "Motivo (cancelled o error)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "print_paused",
+      "label": {
+        "en": "Print paused",
+        "fr": "Impression en pause",
+        "de": "Druck pausiert",
+        "es": "Impresión en pausa"
+      },
+      "description": {
+        "en": "A print was paused: from Gladys, Mainsail, Fluidd, the printer screen or a filament sensor.",
+        "fr": "Une impression a été mise en pause : par Gladys, Mainsail, Fluidd, l'écran de l'imprimante ou un capteur de filament.",
+        "de": "Ein Druck wurde pausiert: über Gladys, Mainsail, Fluidd, das Druckerdisplay oder einen Filamentsensor.",
+        "es": "Se ha pausado una impresión: desde Gladys, Mainsail, Fluidd, la pantalla de la impresora o un sensor de filamento."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Printer",
+            "fr": "Imprimante",
+            "de": "Drucker",
+            "es": "Impresora"
+          }
+        }
+      ],
+      "variables": [
+        {
+          "key": "printer",
+          "type": "string",
+          "label": {
+            "en": "Printer name",
+            "fr": "Nom de l'imprimante",
+            "de": "Druckername",
+            "es": "Nombre de la impresora"
+          }
+        },
+        {
+          "key": "file",
+          "type": "string",
+          "label": {
+            "en": "File",
+            "fr": "Fichier",
+            "de": "Datei",
+            "es": "Archivo"
+          }
+        },
+        {
+          "key": "duration",
+          "type": "string",
+          "label": {
+            "en": "Print time",
+            "fr": "Durée d'impression",
+            "de": "Druckdauer",
+            "es": "Tiempo de impresión"
+          }
+        },
+        {
+          "key": "duration_minutes",
+          "type": "number",
+          "label": {
+            "en": "Print time (minutes)",
+            "fr": "Durée d'impression (minutes)",
+            "de": "Druckdauer (Minuten)",
+            "es": "Tiempo de impresión (minutos)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "klipper_shutdown",
+      "label": {
+        "en": "Klipper stopped on an error",
+        "fr": "Klipper arrêté sur une erreur",
+        "de": "Klipper wegen eines Fehlers gestoppt",
+        "es": "Klipper detenido por un error"
+      },
+      "description": {
+        "en": "Klipper went into shutdown or error: heater fault, lost micro-controller, emergency stop.",
+        "fr": "Klipper est passé en arrêt (shutdown) ou en erreur : défaut de chauffe, carte perdue, arrêt d'urgence.",
+        "de": "Klipper ist in Shutdown oder Fehler gegangen: Heizfehler, verlorener Mikrocontroller, Not-Aus.",
+        "es": "Klipper ha pasado a parada (shutdown) o error: fallo de calentador, microcontrolador perdido, parada de emergencia."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Printer",
+            "fr": "Imprimante",
+            "de": "Drucker",
+            "es": "Impresora"
+          }
+        }
+      ],
+      "variables": [
+        {
+          "key": "printer",
+          "type": "string",
+          "label": {
+            "en": "Printer name",
+            "fr": "Nom de l'imprimante",
+            "de": "Druckername",
+            "es": "Nombre de la impresora"
+          }
+        },
+        {
+          "key": "message",
+          "type": "string",
+          "label": {
+            "en": "Klipper's message",
+            "fr": "Message de Klipper",
+            "de": "Meldung von Klipper",
+            "es": "Mensaje de Klipper"
+          }
         }
       ]
     }
   ],
   "scene_actions": [
     {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
+      "key": "control_print",
+      "label": {
+        "en": "Pause, resume or cancel a print",
+        "fr": "Mettre en pause, reprendre ou annuler une impression",
+        "de": "Druck pausieren, fortsetzen oder abbrechen",
+        "es": "Pausar, reanudar o cancelar una impresión"
       },
-      "timeout_seconds": 15,
+      "description": {
+        "en": "Applied: false when there is nothing to pause, resume or cancel.",
+        "fr": "Appliqué : faux quand il n'y a rien à mettre en pause, reprendre ou annuler.",
+        "de": "Ausgeführt: falsch, wenn nichts zu pausieren, fortzusetzen oder abzubrechen ist.",
+        "es": "Aplicado: falso cuando no hay nada que pausar, reanudar o cancelar."
+      },
+      "timeout_seconds": 20,
       "fields": [
         {
           "key": "device",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
+          "label": {
+            "en": "Printer",
+            "fr": "Imprimante",
+            "de": "Drucker",
+            "es": "Impresora"
+          },
+          "required": true
+        },
+        {
+          "key": "command",
+          "type": "select",
+          "label": {
+            "en": "Command",
+            "fr": "Commande",
+            "de": "Befehl",
+            "es": "Comando"
+          },
+          "required": true,
+          "default": "pause",
+          "options": [
+            {
+              "value": "pause",
+              "label": {
+                "en": "Pause",
+                "fr": "Mettre en pause",
+                "de": "Pausieren",
+                "es": "Pausar"
+              }
+            },
+            {
+              "value": "resume",
+              "label": {
+                "en": "Resume",
+                "fr": "Reprendre",
+                "de": "Fortsetzen",
+                "es": "Reanudar"
+              }
+            },
+            {
+              "value": "cancel",
+              "label": {
+                "en": "Cancel",
+                "fr": "Annuler",
+                "de": "Abbrechen",
+                "es": "Cancelar"
+              }
+            }
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "key": "applied",
+          "type": "boolean",
+          "label": {
+            "en": "Applied",
+            "fr": "Appliqué",
+            "de": "Ausgeführt",
+            "es": "Aplicado"
+          }
+        }
+      ]
+    },
+    {
+      "key": "preheat",
+      "label": {
+        "en": "Preheat the printer",
+        "fr": "Préchauffer l'imprimante",
+        "de": "Drucker vorheizen",
+        "es": "Precalentar la impresora"
+      },
+      "description": {
+        "en": "Sets the targets of every nozzle and of the bed, within Klipper's limits. Refused during a print (applied: false).",
+        "fr": "Règle les consignes de toutes les buses et du plateau, dans les limites de Klipper. Refusé pendant une impression (appliqué : faux).",
+        "de": "Setzt die Solltemperaturen aller Düsen und des Druckbetts, innerhalb der Grenzen von Klipper. Während eines Drucks abgelehnt (ausgeführt: falsch).",
+        "es": "Fija las consignas de todas las boquillas y de la cama, dentro de los límites de Klipper. Se rechaza durante una impresión (aplicado: falso)."
+      },
+      "timeout_seconds": 20,
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Printer",
+            "fr": "Imprimante",
+            "de": "Drucker",
+            "es": "Impresora"
+          },
+          "required": true
+        },
+        {
+          "key": "tool_temperature",
+          "type": "number",
+          "label": {
+            "en": "Nozzle (°C)",
+            "fr": "Buse (°C)",
+            "de": "Düse (°C)",
+            "es": "Boquilla (°C)"
+          },
+          "required": true,
+          "default": 200,
+          "min": 0,
+          "max": 350
+        },
+        {
+          "key": "bed_temperature",
+          "type": "number",
+          "label": {
+            "en": "Bed (°C)",
+            "fr": "Plateau (°C)",
+            "de": "Druckbett (°C)",
+            "es": "Cama (°C)"
+          },
+          "required": true,
+          "default": 60,
+          "min": 0,
+          "max": 150
+        }
+      ],
+      "outputs": [
+        {
+          "key": "applied",
+          "type": "boolean",
+          "label": {
+            "en": "Applied",
+            "fr": "Appliqué",
+            "de": "Ausgeführt",
+            "es": "Aplicado"
+          }
+        }
+      ]
+    },
+    {
+      "key": "cool_down",
+      "label": {
+        "en": "Turn the heaters off",
+        "fr": "Couper les chauffes",
+        "de": "Heizungen ausschalten",
+        "es": "Apagar los calentadores"
+      },
+      "description": {
+        "en": "Turns every heater off (TURN_OFF_HEATERS). Also during a print: the print would fail.",
+        "fr": "Coupe toutes les chauffes (TURN_OFF_HEATERS). Aussi pendant une impression, qui échouerait alors.",
+        "de": "Schaltet alle Heizungen aus (TURN_OFF_HEATERS). Auch während eines Drucks, der dann misslingt.",
+        "es": "Apaga todos los calentadores (TURN_OFF_HEATERS). También durante una impresión, que fallaría."
+      },
+      "timeout_seconds": 20,
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Printer",
+            "fr": "Imprimante",
+            "de": "Drucker",
+            "es": "Impresora"
+          },
           "required": true
         }
       ],
       "outputs": [
         {
-          "key": "signalled",
+          "key": "applied",
           "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
+          "label": {
+            "en": "Applied",
+            "fr": "Appliqué",
+            "de": "Ausgeführt",
+            "es": "Aplicado"
+          }
+        }
+      ]
+    },
+    {
+      "key": "run_macro",
+      "label": {
+        "en": "Run a Klipper macro",
+        "fr": "Lancer une macro Klipper",
+        "de": "Klipper-Makro ausführen",
+        "es": "Ejecutar una macro de Klipper"
+      },
+      "description": {
+        "en": "Runs a G-code macro of the printer by its name, without parameters. Only the macros Klipper lists (see Test the connection).",
+        "fr": "Lance une macro G-code de l'imprimante par son nom, sans paramètre. Seulement les macros listées par Klipper (voir Tester la connexion).",
+        "de": "Führt ein G-Code-Makro des Druckers über seinen Namen aus, ohne Parameter. Nur die von Klipper gelisteten Makros (siehe Verbindung testen).",
+        "es": "Ejecuta una macro G-code de la impresora por su nombre, sin parámetros. Solo las macros que lista Klipper (vea Probar la conexión)."
+      },
+      "timeout_seconds": 20,
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Printer",
+            "fr": "Imprimante",
+            "de": "Drucker",
+            "es": "Impresora"
+          },
+          "required": true
+        },
+        {
+          "key": "macro",
+          "type": "string",
+          "label": {
+            "en": "Macro name",
+            "fr": "Nom de la macro",
+            "de": "Makroname",
+            "es": "Nombre de la macro"
+          },
+          "placeholder": {
+            "en": "LIGHTS_ON",
+            "fr": "LIGHTS_ON",
+            "de": "LIGHTS_ON",
+            "es": "LIGHTS_ON"
+          },
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "key": "applied",
+          "type": "boolean",
+          "label": {
+            "en": "Applied",
+            "fr": "Appliqué",
+            "de": "Ausgeführt",
+            "es": "Aplicado"
+          }
         }
       ]
     }
   ],
   "widgets": [
     {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
-      "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
+      "key": "printer",
+      "label": {
+        "en": "Klipper 3D print",
+        "fr": "Impression 3D Klipper",
+        "de": "Klipper-3D-Druck",
+        "es": "Impresión 3D Klipper"
       },
-      "icon": "activity",
-      "action_timeout_seconds": 15
+      "description": {
+        "en": "Progress, layer, time left, temperatures, and pause, resume or preheat buttons.",
+        "fr": "Progression, couche, temps restant, températures, et boutons pause, reprise ou préchauffage.",
+        "de": "Fortschritt, Schicht, Restzeit, Temperaturen und Tasten zum Pausieren, Fortsetzen oder Vorheizen.",
+        "es": "Progreso, capa, tiempo restante, temperaturas y botones de pausa, reanudación o precalentamiento."
+      },
+      "icon": "printer",
+      "action_timeout_seconds": 20,
+      "settings": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Printer",
+            "fr": "Imprimante",
+            "de": "Drucker",
+            "es": "Impresora"
+          },
+          "required": true
+        },
+        {
+          "key": "preheat_tool",
+          "type": "number",
+          "label": {
+            "en": "Preheat: nozzle (°C)",
+            "fr": "Préchauffage : buse (°C)",
+            "de": "Vorheizen: Düse (°C)",
+            "es": "Precalentar: boquilla (°C)"
+          },
+          "required": false,
+          "default": 200,
+          "min": 0,
+          "max": 350
+        },
+        {
+          "key": "preheat_bed",
+          "type": "number",
+          "label": {
+            "en": "Preheat: bed (°C)",
+            "fr": "Préchauffage : plateau (°C)",
+            "de": "Vorheizen: Druckbett (°C)",
+            "es": "Precalentar: cama (°C)"
+          },
+          "required": false,
+          "default": 60,
+          "min": 0,
+          "max": 150
+        }
+      ]
     }
   ]
 }

@@ -1,0 +1,815 @@
+[
+  {
+    "t": 5415,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_gcode_response",
+      "params": ["File opened:gladys-cube.gcode Size:776"]
+    }
+  },
+  {
+    "t": 5415,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_gcode_response",
+      "params": ["File selected"]
+    }
+  },
+  {
+    "t": 5420,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 0.0047611710033379495,
+            "print_duration": 0,
+            "filament_used": 0,
+            "state": "printing",
+            "info": {
+              "total_layer": 3,
+              "current_layer": 0
+            }
+          },
+          "virtual_sdcard": {
+            "progress": 0.3286082474226804,
+            "is_active": true,
+            "file_path": "/printer/printer_data/gcodes/gladys-cube.gcode"
+          },
+          "display_status": {
+            "progress": 0.3286082474226804
+          }
+        },
+        380370.720017489
+      ]
+    }
+  },
+  {
+    "t": 5439,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_history_changed",
+      "params": [
+        {
+          "action": "added",
+          "job": {
+            "filename": "gladys-cube.gcode",
+            "status": "in_progress",
+            "print_duration": 0,
+            "total_duration": 0.0047611710033379495,
+            "filament_used": 0
+          }
+        }
+      ]
+    }
+  },
+  {
+    "t": 5671,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 0.25524393003433943
+          }
+        },
+        380370.970500248
+      ]
+    }
+  },
+  {
+    "t": 15699,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 10.283000563038513
+          }
+        },
+        380380.998256881
+      ]
+    }
+  },
+  {
+    "t": 25729,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 20.312964926997665
+          }
+        },
+        380391.028221245
+      ]
+    }
+  },
+  {
+    "t": 35755,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 30.338895087013952
+          }
+        },
+        380401.054151405
+      ]
+    }
+  },
+  {
+    "t": 45782,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 40.36653670202941
+          }
+        },
+        380411.08179302
+      ]
+    }
+  },
+  {
+    "t": 55810,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 50.3941616039956
+          }
+        },
+        380421.109417922
+      ]
+    }
+  },
+  {
+    "t": 65836,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 60.4206770019955
+          }
+        },
+        380431.13593332
+      ]
+    }
+  },
+  {
+    "t": 75867,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 70.45143086300232
+          }
+        },
+        380441.166687181
+      ]
+    }
+  },
+  {
+    "t": 82600,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_gcode_response",
+      "params": ["// PAUSE called with"]
+    }
+  },
+  {
+    "t": 82636,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 77.22016055800486
+          },
+          "virtual_sdcard": {
+            "progress": 0.3337628865979381
+          },
+          "display_status": {
+            "progress": 0.3337628865979381,
+            "message": "PAUSE called with"
+          }
+        },
+        380447.935416876
+      ]
+    }
+  },
+  {
+    "t": 82886,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 77.47033353400184,
+            "state": "paused"
+          },
+          "virtual_sdcard": {
+            "is_active": false
+          }
+        },
+        380448.185589852
+      ]
+    }
+  },
+  {
+    "t": 85893,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 80.4774843500345
+          }
+        },
+        380451.192740668
+      ]
+    }
+  },
+  {
+    "t": 86656,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_gcode_response",
+      "params": ["// RESUME called with"]
+    }
+  },
+  {
+    "t": 86896,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 81.48032376699848,
+            "print_duration": 0.2387908489909023,
+            "filament_used": 1,
+            "state": "printing",
+            "info": {
+              "total_layer": 3,
+              "current_layer": 1
+            }
+          },
+          "virtual_sdcard": {
+            "progress": 0.44072164948453607,
+            "is_active": true
+          },
+          "display_status": {
+            "progress": 0.44072164948453607,
+            "message": "RESUME called with"
+          }
+        },
+        380452.195580085
+      ]
+    }
+  },
+  {
+    "t": 90657,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 85.24188786000013,
+            "print_duration": 4.000354941992555,
+            "filament_used": 2
+          },
+          "virtual_sdcard": {
+            "progress": 0.4690721649484536
+          },
+          "display_status": {
+            "progress": 0.4690721649484536
+          }
+        },
+        380455.957144178
+      ]
+    }
+  },
+  {
+    "t": 95924,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 90.50835090404144,
+            "print_duration": 9.266817986033857
+          }
+        },
+        380461.223607222
+      ]
+    }
+  },
+  {
+    "t": 97679,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 92.26315463101491,
+            "print_duration": 11.021621713007335,
+            "filament_used": 3
+          },
+          "virtual_sdcard": {
+            "progress": 0.49871134020618557
+          },
+          "display_status": {
+            "progress": 0.49871134020618557
+          }
+        },
+        380462.978410949
+      ]
+    }
+  },
+  {
+    "t": 105955,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 100.53937904798659,
+            "print_duration": 19.297846129979007
+          }
+        },
+        380471.254635366
+      ]
+    }
+  },
+  {
+    "t": 115984,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 110.5682517469977,
+            "print_duration": 29.326718828990124
+          }
+        },
+        380481.283508065
+      ]
+    }
+  },
+  {
+    "t": 122502,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 117.08673345600255,
+            "print_duration": 35.84520053799497,
+            "filament_used": 4
+          },
+          "virtual_sdcard": {
+            "progress": 0.5270618556701031
+          },
+          "display_status": {
+            "progress": 0.5270618556701031
+          }
+        },
+        380487.801989774
+      ]
+    }
+  },
+  {
+    "t": 126009,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 120.59377260500332,
+            "print_duration": 39.352239686995745
+          }
+        },
+        380491.309028923
+      ]
+    }
+  },
+  {
+    "t": 136033,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 130.6178841870278,
+            "print_duration": 49.37635126902023
+          }
+        },
+        380501.333140505
+      ]
+    }
+  },
+  {
+    "t": 146062,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 140.64723156800028,
+            "print_duration": 59.4056986499927
+          }
+        },
+        380511.362487886
+      ]
+    }
+  },
+  {
+    "t": 146564,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 141.14891882700613,
+            "print_duration": 59.90738590899855,
+            "filament_used": 5,
+            "info": {
+              "total_layer": 3,
+              "current_layer": 2
+            }
+          },
+          "virtual_sdcard": {
+            "progress": 0.6494845360824743
+          },
+          "display_status": {
+            "progress": 0.33
+          }
+        },
+        380511.864175145
+      ]
+    }
+  },
+  {
+    "t": 156090,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 150.67469237704063,
+            "print_duration": 69.43315945903305
+          }
+        },
+        380521.389948695
+      ]
+    }
+  },
+  {
+    "t": 166118,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 160.7023838069872,
+            "print_duration": 79.46085088897962
+          }
+        },
+        380531.417640125
+      ]
+    }
+  },
+  {
+    "t": 170879,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 165.46364098601043,
+            "print_duration": 84.22210806800285,
+            "filament_used": 6
+          },
+          "virtual_sdcard": {
+            "progress": 0.6778350515463918
+          }
+        },
+        380536.178897304
+      ]
+    }
+  },
+  {
+    "t": 176143,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 170.72811122302664,
+            "print_duration": 89.48657830501907
+          }
+        },
+        380541.443367541
+      ]
+    }
+  },
+  {
+    "t": 186176,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 180.7608983310056,
+            "print_duration": 99.51936541299801
+          }
+        },
+        380551.476154649
+      ]
+    }
+  },
+  {
+    "t": 195843,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_gcode_response",
+      "params": ["!! SD busy"]
+    }
+  },
+  {
+    "t": 195956,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 190.54128589603351,
+            "print_duration": 109.29975297802594,
+            "filament_used": 7
+          },
+          "virtual_sdcard": {
+            "progress": 0.7074742268041238
+          }
+        },
+        380561.256542214
+      ]
+    }
+  },
+  {
+    "t": 196207,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 190.79197977203876,
+            "print_duration": 109.55044685403118
+          }
+        },
+        380561.50723609
+      ]
+    }
+  },
+  {
+    "t": 206234,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 200.8189443590236,
+            "print_duration": 119.57741144101601
+          }
+        },
+        380571.534200677
+      ]
+    }
+  },
+  {
+    "t": 216260,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 210.84502058301587,
+            "print_duration": 129.6034876650083
+          }
+        },
+        380581.560276901
+      ]
+    }
+  },
+  {
+    "t": 220736,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_gcode_response",
+      "params": ["// CANCEL_PRINT called with"]
+    }
+  },
+  {
+    "t": 220771,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 215.35577251203358,
+            "print_duration": 134.114239594026
+          },
+          "virtual_sdcard": {
+            "progress": 0.7358247422680413
+          },
+          "display_status": {
+            "message": "CANCEL_PRINT called with"
+          }
+        },
+        380586.07102883
+      ]
+    }
+  },
+  {
+    "t": 221021,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 215.37252882501343,
+            "print_duration": 134.13099590700585,
+            "state": "cancelled"
+          },
+          "virtual_sdcard": {
+            "progress": 0,
+            "is_active": false,
+            "file_path": null
+          }
+        },
+        380586.321205904
+      ]
+    }
+  },
+  {
+    "t": 221069,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_history_changed",
+      "params": [
+        {
+          "action": "finished",
+          "job": {
+            "filename": "gladys-cube.gcode",
+            "status": "cancelled",
+            "print_duration": 134.114239594026,
+            "total_duration": 215.35577251203358,
+            "filament_used": 7
+          }
+        }
+      ]
+    }
+  },
+  {
+    "t": 225791,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_gcode_response",
+      "params": ["// Unknown command:\"NOPE_MACRO\""]
+    }
+  },
+  {
+    "t": 225793,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_gcode_response",
+      "params": ["!! Requested temperature (500.0) out of range (0.0:250.0)"]
+    }
+  },
+  {
+    "t": 225795,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_gcode_response",
+      "params": ["// PAUSE called with"]
+    }
+  },
+  {
+    "t": 225796,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_gcode_response",
+      "params": ["// action:paused"]
+    }
+  },
+  {
+    "t": 225799,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_gcode_response",
+      "params": ["// Klipper state: Shutdown"]
+    }
+  },
+  {
+    "t": 226036,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "webhooks": {
+            "state": "shutdown",
+            "state_message": "Shutdown due to webhooks request\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n"
+          },
+          "display_status": {
+            "message": "PAUSE called with"
+          },
+          "heater_bed": {
+            "target": 0
+          }
+        },
+        380591.336088779
+      ]
+    }
+  },
+  {
+    "t": 226036,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_klippy_shutdown"
+    }
+  },
+  {
+    "t": 226036,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_power_changed",
+      "params": [
+        {
+          "device": "Klipper Test Pin",
+          "status": "error",
+          "locked_while_printing": false,
+          "type": "klipper_device",
+          "is_shutdown": true
+        }
+      ]
+    }
+  },
+  {
+    "t": 229807,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_gcode_response",
+      "params": [
+        "// Shutdown due to webhooks request\n// Once the underlying issue is corrected, use the\n// \"FIRMWARE_RESTART\" command to reset the firmware, reload the\n// config, and restart the host software.\n// Printer is shutdown"
+      ]
+    }
+  },
+  {
+    "t": 229808,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_gcode_response",
+      "params": ["!! Shutdown due to webhooks request"]
+    }
+  }
+]

@@ -1,0 +1,26 @@
+{
+  "sd_busy": {
+    "code": 400,
+    "message": "SD busy"
+  },
+  "out_of_range": {
+    "code": 400,
+    "message": "Requested temperature (500.0) out of range (0.0:250.0)"
+  },
+  "metadata_missing": {
+    "code": -32601,
+    "message": "Metadata not available for <missing.gcode>"
+  },
+  "shutdown": {
+    "code": 400,
+    "message": "Shutdown due to webhooks request\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n"
+  },
+  "unauthorized": {
+    "code": -32602,
+    "message": "Unauthorized"
+  },
+  "invalid_api_key": {
+    "code": -32602,
+    "message": "Invalid API Key"
+  }
+}

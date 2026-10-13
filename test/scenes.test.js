@@ -1,93 +1,101 @@
+// Scene actions: control_print, preheat, cool_down, run_macro. A refusal is
+// `applied: false`; an unknown printer or macro fails the action.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { createFakeGladys } from '@gladysassistant/integration-sdk/testing';
-import { DEVICE_BLUEPRINTS } from '../src/devices/index.js';
-import { MOTION_DETECTED_TRIGGER, motionSensor } from '../src/devices/motionSensor.js';
-import { SCENE_ACTIONS } from '../src/scenes.js';
-import { normalizeConfig } from '../src/config.js';
+import { createMoonraker, settle } from './helpers/fakeMoonraker.js';
+import { createWorld, deviceId } from './helpers/world.js';
 
-const manifest = JSON.parse(
-  await readFile(new URL('../gladys-assistant-integration.json', import.meta.url), 'utf8'),
-);
-const config = normalizeConfig();
+const run = (world, key, fields) =>
+  world.gladys.fake.sceneAction(key, { device: deviceId(1), ...fields });
 
-const declarationOf = (list, key) => manifest[list].find((entry) => entry.key === key);
-const keysOf = (list) => (list ?? []).map((entry) => entry.key);
-const deviceIdOf = (gladys, key) =>
-  DEVICE_BLUEPRINTS.find((bp) => bp.key === key).deviceExternalId(gladys);
-
-// Let the async interval callback run to completion.
-const flush = () => new Promise((resolve) => setImmediate(resolve));
-
-test('the motion sensor fires one motion_detected event per detection, none on the clear', async (t) => {
-  t.mock.timers.enable({ apis: ['setInterval', 'setTimeout'] });
-  const gladys = createFakeGladys();
-  const stopPush = motionSensor.startPush(gladys, config);
-  try {
-    t.mock.timers.tick(60_000);
-    await flush();
-    assert.equal(gladys.fake.sceneEvents.length, 1, 'one detection, one event');
-    assert.equal(gladys.fake.sceneEvents[0].key, MOTION_DETECTED_TRIGGER);
-    assert.equal(gladys.fake.states.at(-1).state, 1, 'the state is still published');
-
-    t.mock.timers.tick(10_000);
-    await flush();
-    assert.equal(gladys.fake.states.at(-1).state, 0, 'the detection is cleared');
-    assert.equal(gladys.fake.sceneEvents.length, 1, 'the clear fires no event');
-  } finally {
-    stopPush();
-  }
+test('control_print: pause, resume, cancel; nothing to do is not applied', async (t) => {
+  const world = await createWorld();
+  t.after(() => world.app.stop());
+  const [server] = world.servers;
+  let ack = await run(world, 'control_print', { command: 'pause' });
+  assert.deepEqual(ack.data.outputs, { applied: false });
+  server.setPrintState('printing', { filename: 'a.gcode' });
+  await settle();
+  ack = await run(world, 'control_print', { command: 'pause' });
+  assert.deepEqual(ack.data.outputs, { applied: true });
+  await settle();
+  ack = await run(world, 'control_print', { command: 'resume' });
+  assert.deepEqual(ack.data.outputs, { applied: true });
+  await settle();
+  ack = await run(world, 'control_print', { command: 'cancel' });
+  assert.deepEqual(ack.data.outputs, { applied: true });
+  ack = await run(world, 'control_print', { command: 'shutdown' });
+  assert.equal(ack.success, false);
 });
 
-test('motion_detected data only carries keys the trigger declares', async (t) => {
-  t.mock.timers.enable({ apis: ['setInterval', 'setTimeout'] });
-  const gladys = createFakeGladys();
-  const stopPush = motionSensor.startPush(gladys, config);
-  try {
-    t.mock.timers.tick(60_000);
-    await flush();
-  } finally {
-    stopPush();
-  }
-  const [{ data }] = gladys.fake.sceneEvents;
-  const trigger = declarationOf('scene_triggers', MOTION_DETECTED_TRIGGER);
-  // The core keeps the `fields` keys (filters) and the `variables` keys
-  // (exposed to the scene): any other key would be silently dropped.
-  const declared = [...keysOf(trigger.fields), ...keysOf(trigger.variables)];
-  for (const [key, value] of Object.entries(data)) {
-    assert.ok(declared.includes(key), `data.${key} is not declared, the core would drop it`);
-    assert.ok(value === null || typeof value !== 'object', `data.${key} must be a primitive`);
-  }
-  // A `"source": "devices"` filter stores a device external_id.
-  assert.equal(data.device, deviceIdOf(gladys, 'motion-sensor'));
-  const targets = trigger.fields.find((field) => field.key === 'target').options;
-  assert.ok(
-    targets.some((option) => option.value === data.target),
-    `data.target "${data.target}" must be one of the filter options`,
+test('preheat: every nozzle and the bed, within Klipper limits, never during a print', async (t) => {
+  const world = await createWorld({ servers: [createMoonraker({ printer: 'rich' })] });
+  t.after(() => world.app.stop());
+  const [server] = world.servers;
+  let ack = await run(world, 'preheat', { tool_temperature: '240,4', bed_temperature: 100 });
+  assert.deepEqual(ack.data.outputs, { applied: true });
+  assert.equal(
+    server.callsOf('printer.gcode.script').at(-1).params.script,
+    [
+      'SET_HEATER_TEMPERATURE HEATER=extruder TARGET=240',
+      'SET_HEATER_TEMPERATURE HEATER=extruder1 TARGET=240',
+      'SET_HEATER_TEMPERATURE HEATER=heater_bed TARGET=100',
+    ].join('\n'),
+    'the chamber is left alone',
   );
+  ack = await run(world, 'preheat', { tool_temperature: 260 });
+  assert.equal(ack.success, false);
+  assert.match(ack.error, /0 à 250 °C/);
+  ack = await run(world, 'preheat', { tool_temperature: 'hot' });
+  assert.equal(ack.success, false);
+  server.setPrintState('printing', { filename: 'a.gcode' });
+  await settle();
+  ack = await run(world, 'preheat', {});
+  assert.deepEqual(ack.data.outputs, { applied: false });
 });
 
-test('identify_device signals the chosen device and returns the declared outputs', async () => {
-  const gladys = createFakeGladys();
-  const outputs = await SCENE_ACTIONS.identify_device(gladys, {
-    fields: { device: deviceIdOf(gladys, 'light') },
-    config,
-  });
-  assert.deepEqual(outputs, { signalled: true });
-  const declared = keysOf(declarationOf('scene_actions', 'identify_device').outputs);
-  for (const key of Object.keys(outputs)) {
-    assert.ok(declared.includes(key), `output "${key}" is not declared, the core would drop it`);
+test('cool_down: TURN_OFF_HEATERS, during a print too', async (t) => {
+  const world = await createWorld();
+  t.after(() => world.app.stop());
+  const [server] = world.servers;
+  server.setPrintState('printing', { filename: 'a.gcode' });
+  await settle();
+  const ack = await run(world, 'cool_down', {});
+  assert.deepEqual(ack.data.outputs, { applied: true });
+  assert.equal(server.callsOf('printer.gcode.script').at(-1).params.script, 'TURN_OFF_HEATERS');
+});
+
+test('run_macro: only a macro the printer lists, by its name, nothing else', async (t) => {
+  const world = await createWorld();
+  t.after(() => world.app.stop());
+  const [server] = world.servers;
+  let ack = await run(world, 'run_macro', { macro: ' end_print ' });
+  assert.deepEqual(ack.data.outputs, { applied: true });
+  assert.equal(server.callsOf('printer.gcode.script').at(-1).params.script, 'END_PRINT');
+  const sent = server.callsOf('printer.gcode.script').length;
+  for (const macro of [
+    'LIGHTS_ON',
+    '_CLIENT_LINEAR_MOVE',
+    'END_PRINT\nM112',
+    'END_PRINT TEMP=300',
+    'M112',
+    '',
+  ]) {
+    ack = await run(world, 'run_macro', { macro });
+    assert.equal(ack.success, false, JSON.stringify(macro));
   }
+  assert.match(ack.error, /Saisissez le nom d'une macro/);
+  assert.equal(server.callsOf('printer.gcode.script').length, sent, 'nothing else was sent');
+  server.shutdown();
+  await settle();
+  ack = await run(world, 'run_macro', { macro: 'END_PRINT' });
+  assert.deepEqual(ack.data.outputs, { applied: false }, 'Klipper stopped');
 });
 
-test('identify_device reports a device that cannot signal itself through its output', async () => {
-  // Not a failure: a scene action is never a condition, the scene author
-  // gates the following actions on the output instead.
-  const gladys = createFakeGladys();
-  const outputs = await SCENE_ACTIONS.identify_device(gladys, {
-    fields: { device: deviceIdOf(gladys, 'weather-station') },
-    config,
-  });
-  assert.deepEqual(outputs, { signalled: false });
+test('an unknown printer fails the action', async (t) => {
+  const world = await createWorld();
+  t.after(() => world.app.stop());
+  const ack = await world.gladys.fake.sceneAction('cool_down', { device: deviceId(3) });
+  assert.equal(ack.success, false);
+  assert.match(ack.error, /n'est plus configurée/);
 });
