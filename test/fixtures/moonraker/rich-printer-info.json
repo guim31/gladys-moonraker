@@ -1,0 +1,14 @@
+{
+  "state": "ready",
+  "state_message": "Printer is ready",
+  "hostname": "voron",
+  "klipper_path": "/printer/klipper",
+  "python_path": "/printer/klippy-env/bin/python",
+  "process_id": 7,
+  "user_id": 1000,
+  "group_id": 1000,
+  "log_file": "/printer/printer_data/logs/klippy.log",
+  "config_file": "/printer/printer_data/config/printer.cfg",
+  "software_version": "?",
+  "cpu_info": "4 core Intel(R) N100"
+}

@@ -1,0 +1,204 @@
+# Moonraker (Klipper)
+
+Verfolge und steuere deine Klipper-3D-Drucker aus Gladys heraus über
+[Moonraker](https://moonraker.readthedocs.io), den API-Server hinter Mainsail
+und Fluidd: Voron, RatRig, Sovol, Elegoo, gerootete Creality K1 oder K2 und
+jeder Drucker mit Klipper. Alles bleibt in deinem lokalen Netzwerk: Gladys
+spricht direkt mit Moonraker, ohne Cloud-Konto.
+
+Die Integration wurde gegen ein echtes Moonraker getestet, das Klipper mit
+einem simulierten Mikrocontroller (simulavr) steuert: echte Drucke, Pause,
+Fortsetzen, Abbruch, ein Druckfehler, ein Not-Aus, eine Webcam. **Ohne
+physischen Drucker entwickelt: Rückmeldungen sind willkommen** im
+Gladys-Forum.
+
+## Voraussetzungen
+
+- Gladys Assistant 5.1 oder neuer.
+- Ein Drucker mit Klipper und Moonraker (installiert mit Mainsail oder
+  Fluidd, KIAUH, MainsailOS, FluiddPi…), vom Gladys-Rechner aus über Port 7125
+  oder über die Adresse von Mainsail oder Fluidd erreichbar.
+- Entweder ein Moonraker, das dem Netzwerk von Gladys vertraut
+  (`trusted_clients` in `moonraker.conf`, bei den meisten Installationen der
+  Standard für lokale Netzwerke), oder ein API-Schlüssel von Moonraker.
+- Für das Webcam-Bild: eine in Mainsail oder Fluidd eingetragene Webcam mit
+  einer Schnappschuss-Adresse (Standard mit crowsnest oder mjpg-streamer).
+
+## Konfiguration
+
+1. Öffne den Reiter **Konfiguration** der Integration.
+2. Gib unter **Moonraker-Adresse** die IP-Adresse des Druckers ein, zum
+   Beispiel `192.168.1.50`: Die Integration nutzt dann Port 7125, den von
+   Moonraker. Du kannst auch die Adresse eingeben, mit der du Mainsail oder
+   Fluidd öffnest, etwa `http://192.168.1.50` (sein Webserver leitet die
+   Moonraker-API weiter), oder einen eigenen Port (`192.168.1.50:7126`). Nimm
+   lieber eine IP-Adresse: Namen wie `voron.local` werden im Container der
+   Integration nicht aufgelöst.
+3. **API-Schlüssel** ist nur nötig, wenn Moonraker dem Netzwerk von Gladys
+   nicht vertraut. Mainsail: **Einstellungen → Autorisierung**; Fluidd:
+   **Einstellungen → Authentifizierung**; oder
+   `http://<drucker>:7125/access/api_key` von einem vertrauenswürdigen
+   Rechner aus.
+4. Ein zweiter oder dritter Drucker: Fülle **Drucker 2** und **Drucker 3**
+   genauso aus (je ein Moonraker).
+5. **Sprache** legt die Sprache der Funktionsnamen und Texte fest, die die
+   Integration erzeugt (Standard: Französisch). Funktionsnamen werden beim
+   Hinzufügen des Geräts in Gladys festgelegt.
+6. Speichere. **Verbindung testen** zeigt den Status jedes Druckers und die
+   Liste seiner Makros.
+
+Füge den Drucker danach im Reiter **Entdecken** hinzu.
+
+## Das Druckergerät
+
+Ein Gerät pro Moonraker, benannt nach dem Hostnamen des Druckers (`voron`,
+`mainsailos`…) oder „Klipper“. Die Werte kommen live von Moonraker (Klipper
+sendet seine Änderungen mehrmals pro Sekunde); die Integration gibt sie
+höchstens alle 5 Sekunden an Gladys weiter, Statuswechsel sofort.
+
+| Funktion                  | Was sie anzeigt                                                                                                                                                                                            |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status                    | Bereit, Druckt, Pausiert, Fertig, Abgebrochen, Druckfehler, Klipper gestoppt (Shutdown), Klipper-Fehler, Klipper startet, Klipper getrennt, Moonraker nicht erreichbar, API-Schlüssel fehlt oder abgelehnt |
+| Datei                     | Die gerade gedruckte Datei oder die letzte                                                                                                                                                                 |
+| Fortschritt               | Fortschritt des Drucks, wie auf dem Druckerdisplay (100 % bleiben nach einem fertigen Druck erhalten)                                                                                                      |
+| Verstrichene Zeit         | Seit Beginn des Drucks, in Minuten                                                                                                                                                                         |
+| Restzeit                  | Aus der Schätzung des Slicers, wenn die Datei eine hat, sonst aus dem Fortschritt hochgerechnet, in Minuten (0 im Ruhezustand)                                                                             |
+| Schicht, Schichten gesamt | Wenn der Slicer sie sendet (`SET_PRINT_STATS_INFO`, wie die Klipper-Profile von PrusaSlicer, OrcaSlicer und SuperSlicer); sonst 0                                                                          |
+| Düse, Düse 2, Druckbett…  | Temperaturen in ganzen Grad: jeder Extruder, das Heizbett, jeder `heater_generic` (ein Bauraum…)                                                                                                           |
+| … (Soll)                  | Solltemperaturen, nur lesbar: Heizen über das Widget oder die Szenenaktionen                                                                                                                               |
+| Temperatursensoren        | Jeder `temperature_sensor` und `temperature_fan` von Klipper (Raspberry Pi, MCU, Bauraum…), höchstens sechs                                                                                                |
+| Bauteillüfter             | Drehzahl des `[fan]`, in Prozent                                                                                                                                                                           |
+| Pausieren, Fortsetzen     | Drucktaster                                                                                                                                                                                                |
+| Webcam                    | Der Schnappschuss der ersten Webcam von Mainsail oder Fluidd, jede Minute erneuert                                                                                                                         |
+
+Es gibt bewusst keine Taste **Abbrechen** am Gerät: Ein Tippen ohne
+Bestätigung würde einen Druck ruinieren. Der Abbruch wird vom Widget (mit
+Bestätigung) und von den Szenen angeboten. Temperaturen und Solltemperaturen
+sind ebenfalls nur lesbar: Eine Druckerheizung kann nie versehentlich vom
+Dashboard aus gestartet werden, auch nicht über HomeKit, Alexa oder Google.
+Geheizt wird über das Widget (Vorheizen, Abkühlen) und die Szenenaktionen.
+Für Gladys sind es „Gerätetemperaturen“, die nie zur
+Raumtemperatur zählen. Die Grenzen jeder Heizung sind Klippers eigenes `max_temp`.
+
+Was der Drucker hat (Heizungen, Sensoren, Lüfter, Webcam), wird bei jeder
+Verbindung aus Klipper gelesen. Ändert es sich, schlägt Gladys im Reiter
+**Entdecken** vor, das Gerät zu aktualisieren.
+
+## Dashboard-Widget
+
+Füge das Widget **Klipper-3D-Druck** zu einem Dashboard hinzu und wähle den
+Drucker in seinen Einstellungen. Es zeigt:
+
+- die Fortschrittsanzeige, die Restzeit, die Temperaturen von Düse und
+  Druckbett (live);
+- den Status, die Datei, die Schicht, die verstrichene Zeit, die erwartete
+  Endzeit, die aktiven Solltemperaturen;
+- die gerade sinnvollen Tasten: **Pausieren** oder **Fortsetzen** und
+  **Abbrechen** (mit Bestätigung) während eines Drucks; **Vorheizen** und,
+  wenn etwas heizt, **Abkühlen** im Ruhezustand; **Klipper neu starten** (mit
+  Bestätigung), nachdem Klipper wegen eines Fehlers gestoppt hat.
+
+Die Vorheiztemperaturen sind Einstellungen des Widgets (standardmäßig 200 °C
+und 60 °C, PLA). Es gibt keine Not-Aus-Taste: Der Not-Aus von Klipper ist
+für jemanden gedacht, der neben dem Drucker steht.
+
+## Szenenauslöser
+
+In der Kategorie **Integrationen** des Szeneneditors. Jeder lässt sich auf
+einen Drucker beschränken.
+
+- **Druck gestartet**: Variablen Druckername, Datei.
+- **Druck fertig**: Variablen Druckername, Datei, Druckdauer (als Text, wie
+  `1 Std. 05 Min.`, und in Minuten).
+- **Druck fehlgeschlagen oder abgebrochen**: lässt sich auf einen Grund
+  beschränken (abgebrochen, Fehler). Ein Fehler umfasst auch einen
+  Klipper-Stopp während des Drucks. Variablen Druckername, Datei, Druckdauer,
+  Grund.
+- **Druck pausiert**: über Gladys, Mainsail, Fluidd, das Druckerdisplay oder
+  einen Filamentsensor. Variablen Druckername, Datei, verstrichene Zeit.
+- **Klipper wegen eines Fehlers gestoppt**: Klipper ist in Shutdown oder
+  Fehler gegangen (Heizfehler, verlorener Mikrocontroller, Not-Aus).
+  Variablen Druckername, Meldung von Klipper (zum Beispiel
+  `MCU 'mcu' shutdown: ADC out of range`).
+
+Die Variablen liest du in den folgenden Aktionen zum Beispiel mit
+`{{triggerEvent.data.file}}` und `{{triggerEvent.data.duration}}`.
+
+## Szenenaktionen
+
+- **Druck pausieren, fortsetzen oder abbrechen**: gibt **Ausgeführt** falsch
+  zurück, wenn nichts zu pausieren, fortzusetzen oder abzubrechen war (die
+  Szene läuft weiter).
+- **Drucker vorheizen**: Solltemperaturen aller Düsen und des Druckbetts,
+  standardmäßig 200 °C und 60 °C, innerhalb des `max_temp` jeder Heizung.
+  Während eines Drucks abgelehnt (Ausgeführt: falsch): Eine Szene, die zu
+  einer festen Zeit vorheizt, berührt nie einen laufenden Druck.
+- **Heizungen ausschalten**: `TURN_OFF_HEATERS`, auch während eines Drucks
+  (der dann misslingt).
+- **Klipper-Makro ausführen**: führt ein G-Code-Makro des Druckers über
+  seinen Namen aus, ohne Parameter, zum Beispiel `LIGHTS_ON`. Nur die von
+  Klipper gelisteten Makros werden angenommen (siehe **Verbindung testen**);
+  private Makros (deren Name mit `_` beginnt) und freier G-Code werden
+  abgelehnt. Ausgeführt: falsch, wenn Klipper nicht bereit ist.
+
+Ein Befehl, den Klipper erst spät bestätigt (eine Pause wartet auf die
+Bewegungen in seiner Warteschlange, ein Makro kann minutenlang heizen), gilt
+nach 15 Sekunden als angenommen.
+
+## Szenenbeispiele
+
+- **Druck fertig → Benachrichtigung**: Auslöser Druck fertig, Aktion
+  „Nachricht senden“:
+  `{{triggerEvent.data.file}} fertig in {{triggerEvent.data.duration}}`.
+- **Klipper gestoppt → Alarm**: Auslöser Klipper wegen eines Fehlers
+  gestoppt, Nachricht `Drucker gestoppt: {{triggerEvent.data.message}}`.
+- **Rauch erkannt → alles stoppen**: Auslöser am Rauchmelder, Aktionen Druck
+  pausieren, fortsetzen oder abbrechen (abbrechen), dann Heizungen
+  ausschalten, dann die smarte Steckdose des Druckers ausschalten.
+- **Bereit zum Frühstück**: werktags um 7 Uhr Drucker vorheizen (ohne
+  Wirkung, wenn ein Druck läuft).
+- **Licht für die Webcam**: Druck gestartet → Klipper-Makro `LIGHTS_ON`
+  ausführen oder das Werkstattlicht einschalten; Druck fertig oder
+  fehlgeschlagen → ausschalten.
+
+## Fehlerbehebung
+
+- **Moonraker nicht erreichbar**: Prüfe die Adresse vom Gladys-Rechner aus
+  (`curl http://192.168.1.50:7125/server/info`). Nimm eine IP-Adresse statt
+  `voron.local`. Hinter Mainsail oder Fluidd gibst du deren Adresse ohne Port
+  ein.
+- **API-Schlüssel fehlt oder abgelehnt**: Moonraker vertraut dem Netzwerk von
+  Gladys nicht. Füge seinen API-Schlüssel ein oder trage das Netzwerk von
+  Gladys unter `trusted_clients` in `moonraker.conf` ein. Ein neu erzeugter
+  Schlüssel macht den alten ungültig.
+- **Klipper gestoppt (Shutdown)** oder **Klipper-Fehler**: Klipper braucht
+  deine Aufmerksamkeit (seine Meldung steht im Auslöser und in Mainsail oder
+  Fluidd). Ist die Ursache behoben, führt **Klipper neu starten** im Widget
+  `FIRMWARE_RESTART` aus.
+- **Die Schicht bleibt auf 0**: Der Slicer sendet kein
+  `SET_PRINT_STATS_INFO`; füge es dem G-Code für den Schichtwechsel im Slicer
+  hinzu (siehe die Klipper-Dokumentation).
+- **Die Restzeit ist ungenau**: Ohne Slicer-Metadaten wird sie aus dem
+  Dateifortschritt hochgerechnet, am Anfang eines Drucks grob.
+- **Kein Webcam-Bild**: Das Bild muss ein JPEG von höchstens 150 KB sein (eine
+  Grenze von Gladys): Verringere die Auflösung der Webcam. Eine zu Mainsail
+  relative Schnappschuss-Adresse (`/webcam/?action=snapshot`) wird auf Port 80
+  des Druckers gelesen.
+- Protokolle: auf der Integrationsseite von Gladys oder mit `docker logs` auf
+  dem Host. `LOG_LEVEL=debug` zeigt Details. Der API-Schlüssel erscheint nie in
+  den Protokollen.
+
+## Grenzen
+
+- Höchstens drei Moonraker.
+- Kein Hochladen von Dateien, kein Druckstart aus Gladys, kein freier G-Code,
+  kein Zeitraffer, kein Spoolman, keine Steckdosen („power devices“) von
+  Moonraker.
+- Das Webcam-Bild ist ein Schnappschuss, der jede Minute (und auf Abruf)
+  erneuert wird, kein Videostream; nur die erste Webcam wird genutzt.
+- Ein Ereignis, das kürzer als eine Viertelsekunde ist, kann von Klipper mit
+  dem nächsten zusammengelegt werden (ein sofort scheiternder Druck wird als
+  fehlgeschlagen gemeldet, ohne „gestartet“).
+- Ohne physischen Drucker entwickelt (Klipper mit einem simulierten
+  Mikrocontroller wurde genutzt): Rückmeldungen sind willkommen.
+- Nicht mit den Projekten Klipper und Moonraker verbunden.

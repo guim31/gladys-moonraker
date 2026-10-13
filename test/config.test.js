@@ -1,33 +1,58 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeConfig, DEFAULT_CONFIG } from '../src/config.js';
+import { DEFAULT_CONFIG, normalizeConfig, normalizeUrl } from '../src/config.js';
 
-test('normalizeConfig returns the defaults when called with no argument', () => {
-  assert.deepEqual(normalizeConfig(), DEFAULT_CONFIG);
+test('addresses: Moonraker on 7125 by default, the web server when a URL is given', () => {
+  assert.equal(normalizeUrl('192.0.2.10'), 'http://192.0.2.10:7125');
+  assert.equal(normalizeUrl(' voron.local '), 'http://voron.local:7125');
+  assert.equal(normalizeUrl('192.0.2.10:7126'), 'http://192.0.2.10:7126');
+  assert.equal(normalizeUrl('http://192.0.2.10'), 'http://192.0.2.10');
+  assert.equal(normalizeUrl('http://192.0.2.10/'), 'http://192.0.2.10');
+  assert.equal(
+    normalizeUrl('https://printer.example/moonraker/'),
+    'https://printer.example/moonraker',
+  );
+  assert.equal(normalizeUrl('[2001:db8::1]'), 'http://[2001:db8::1]:7125');
 });
 
-test('normalizeConfig keeps user values over the defaults', () => {
-  const config = normalizeConfig({ latitude: 45.5, longitude: -73.6, unit: 'fahrenheit' });
-  assert.equal(config.latitude, 45.5);
-  assert.equal(config.longitude, -73.6);
-  assert.equal(config.unit, 'fahrenheit');
+test('unusable addresses are refused, credentials in the URL too', () => {
+  for (const raw of [
+    '',
+    '  ',
+    'ftp://192.0.2.10',
+    'http://',
+    'http://user:pw@192.0.2.10',
+    'http://192.0.2.10/?token=x',
+    42,
+    null,
+  ]) {
+    assert.equal(normalizeUrl(raw), null, String(raw));
+  }
 });
 
-test('normalizeConfig coerces numeric strings coming from a form', () => {
-  const config = normalizeConfig({ latitude: '48.8', longitude: '2.3', poll_frequency: '600' });
-  assert.equal(config.latitude, 48.8);
-  assert.equal(config.longitude, 2.3);
-  assert.equal(config.poll_frequency, 600);
-  assert.equal(typeof config.poll_frequency, 'number');
-});
-
-test('normalizeConfig falls back to the default for a missing numeric field', () => {
-  const config = normalizeConfig({ unit: 'celsius' });
-  assert.equal(config.poll_frequency, DEFAULT_CONFIG.poll_frequency);
-});
-
-test('GLADYS_PREFER_LOCAL defaults to true and only an explicit false disables it', () => {
-  assert.equal(normalizeConfig().GLADYS_PREFER_LOCAL, true);
-  assert.equal(normalizeConfig({ GLADYS_PREFER_LOCAL: true }).GLADYS_PREFER_LOCAL, true);
-  assert.equal(normalizeConfig({ GLADYS_PREFER_LOCAL: false }).GLADYS_PREFER_LOCAL, false);
+test('the configuration: slots in order, invalid ones reported, French by default', () => {
+  assert.deepEqual(normalizeConfig(DEFAULT_CONFIG), {
+    printers: [],
+    invalidSlots: [],
+    language: 'fr',
+  });
+  assert.deepEqual(
+    normalizeConfig({
+      url_1: '192.0.2.10',
+      api_key_1: ' KEY ',
+      url_2: 'nope://',
+      url_3: '192.0.2.12',
+      language: 'de',
+    }),
+    {
+      printers: [
+        { slot: 1, url: 'http://192.0.2.10:7125', apiKey: 'KEY' },
+        { slot: 3, url: 'http://192.0.2.12:7125', apiKey: '' },
+      ],
+      invalidSlots: [2],
+      language: 'de',
+    },
+  );
+  assert.equal(normalizeConfig({ language: 'it' }).language, 'fr');
+  assert.deepEqual(normalizeConfig(null).printers, []);
 });

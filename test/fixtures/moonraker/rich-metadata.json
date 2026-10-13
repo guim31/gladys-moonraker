@@ -1,0 +1,23 @@
+{
+  "size": 776,
+  "modified": 1791868389.6428225,
+  "uuid": "2d4c26df-4b16-4827-af36-1870bf6a3637",
+  "file_processors": [],
+  "slicer": "PrusaSlicer",
+  "slicer_version": "2.7.1+linux-x64",
+  "gcode_start_byte": 254,
+  "gcode_end_byte": 776,
+  "object_height": 20,
+  "estimated_time": 65,
+  "layer_height": 0.2,
+  "first_layer_height": 0.2,
+  "filament_type": "PETG",
+  "filament_colors": [],
+  "extruder_colors": [],
+  "filament_temps": [],
+  "referenced_tools": [],
+  "filament_total": 40.5,
+  "print_start_time": 1791868401.6598976,
+  "job_id": "000002",
+  "filename": "gladys-cube.gcode"
+}

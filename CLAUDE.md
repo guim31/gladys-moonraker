@@ -16,8 +16,8 @@ its only runtime dependency. It started from the official JavaScript template.
 ```bash
 npm install
 npm test                                  # node --test, the built-in runner
-node --test test/devices.test.js          # one file
-node --test --test-name-pattern "plug"    # tests whose name matches
+node --test test/hub.test.js              # one file
+node --test --test-name-pattern "widget"  # tests whose name matches
 npm run lint                              # ESLint
 npm run format:check                      # Prettier, as the CI runs it
 npm run format                            # Prettier, fix in place
@@ -31,16 +31,22 @@ pushing.
 ## Architecture
 
 ```
-index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
+index.js                          SDK wiring only: src/app.js registers the handlers before connect()
+src/app.js                        every SDK handler -> the hub (also used by the tests)
+src/hub.js                        printers, devices, states, connection status, scene events, commands
+src/printer.js                    one Moonraker: initialization, subscription, print events, commands, webcam
+src/devices.js                    Moonraker -> Gladys device, snapshot -> feature states
+src/moonraker/rpc.js              JSON-RPC WebSocket: identify (API key), timeouts, reconnection, idle watchdog
+src/moonraker/model.js            reading Moonraker answers into capabilities and snapshots
 src/scenes.js                     scene action handlers (manifest `scene_actions`)
 src/widgets.js                    dashboard widget handlers (manifest `widgets`)
+src/texts.js                      every text produced by the container, in four languages
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
+src/store.js                      /data/moonraker-state.json (capabilities of each printer)
 gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (en and fr mandatory)
 test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+                                  and helpers/fakeMoonraker.js (recorded Moonraker answers)
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -70,8 +76,9 @@ test/                             node --test, against the SDK's fake Gladys (in
   `type: "provider"`: 5.1.0). `test/manifest.test.js` ties the manifest to the
   code (defaults, action, scene and widget handlers): change both sides
   together.
-- **User-facing text** is bilingual (English and French): action messages,
-  manifest texts, and `docs/en.md` / `docs/fr.md`, kept in sync.
+- **User-facing text** exists in English, French, German and Spanish: action
+  messages, manifest texts, feature names, widget contents, and
+  `docs/{en,fr,de,es}.md`, kept in sync (`test/i18n.test.js`).
 - **Style.** Prettier formats, ESLint catches mistakes. Comments explain why,
   in English. Tests never touch the network.
 
@@ -213,3 +220,57 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
 - Docs `en`, `fr`, `de`, `es` avec les mêmes sections.
 - Chauffe, ouverture, sécurité : ne rien rendre pilotable « comme un thermostat » ou par un assistant
   vocal quand une erreur serait dangereuse (leçon d'OctoPrint).
+
+## Moonraker (appris sur cette intégration)
+
+Faits vérifiés sur Moonraker (API 1.5.0) pilotant Klipper (v0.13) avec un micro-contrôleur simulé
+(image `ei99070/docker-klipper-simulavr`, Klipper + simulavr + Moonraker + mjpg-streamer dans un seul
+conteneur), réponses et sessions enregistrées dans `test/fixtures/moonraker/` :
+
+- **Tout passe par la WebSocket JSON-RPC** `/websocket`. Elle s'ouvre sans identifiants ;
+  `server.connection.identify` (avec `api_key`) l'authentifie. Hors `trusted_clients` et sans clé,
+  chaque requête répond `{code: -32602, message: "Unauthorized"}` (« Invalid API Key » pour une mauvaise
+  clé) : ce code n'est pas un 401, on classe sur le message. Rien n'est demandé avant l'identification.
+- Moonraker envoie `notify_proc_stat_update` **chaque seconde** à tous les clients : un silence d'une
+  minute veut dire lien mort. Klipper bloqué : une requête qui passe par Klippy (`printer.info`) **ne
+  reçoit jamais de réponse** — chaque requête a son délai.
+- `printer.objects.subscribe` renvoie l'état complet, puis `notify_status_update` ne porte **que les
+  champs modifiés**, environ 4 fois par seconde pendant une impression (`total_duration` à chaque
+  fois) : fusion objet par objet, et transmission à Gladys limitée à une fois toutes les 5 s (sauf
+  changement d'état ou de fichier). Les événements se déduisent de chaque mise à jour, avant le
+  lissage.
+- `print_stats.state` : `standby`, `printing`, `paused`, `complete`, `cancelled`, `error`. Une
+  impression qui échoue aussitôt (« Extrude below minimum temp ») passe de `standby` à `error` en
+  **une seule** notification, sans `printing` : `done`/`failed` se déclenchent à l'entrée dans
+  `complete`/`cancelled`/`error`, pas seulement depuis `printing`.
+- **Klipper arrêté** : `webhooks.state` passe à `shutdown` dans un `notify_status_update`, suivi de
+  `notify_klippy_shutdown` ; le message (`state_message`, plusieurs lignes, la première suffit) est
+  aussi dans `printer.info`. Pendant un shutdown, Klippy répond encore à `printer.objects.subscribe`.
+  `notify_klippy_disconnected` tue l'abonnement : tout relire à `notify_klippy_ready`.
+- **Commandes** : `printer.print.pause` n'est acquitté qu'**après** les mouvements en file (71 s sur le
+  simulateur, quelques secondes sur une vraie machine) ; une macro peut chauffer des minutes. Au-delà de
+  15 s sans réponse, la commande est tenue pour acceptée. `printer.gcode.script` avec une commande
+  inconnue répond **`ok`** (le refus n'est qu'un `notify_gcode_response` « Unknown command ») :
+  valider les macros soi-même contre `printer.objects.list` (`gcode_macro <NOM>`). Une pause hors
+  impression répond aussi `ok` : vérifier l'état avant. Une consigne hors `max_temp` est refusée
+  (code 400, « Requested temperature (500.0) out of range (0.0:250.0) »).
+- Les limites des chauffes sont dans `configfile.settings` (clés de section **en minuscules** :
+  `temperature_sensor raspberry pi` pour l'objet `temperature_sensor Raspberry Pi`). La liste des
+  chauffes et capteurs est dans l'objet `heaters` (`available_heaters`, `available_sensors`).
+- `display_status.progress` vaut le dernier `M73` du trancheur, sinon `virtual_sdcard.progress`
+  (position dans le fichier, en-tête compris). La couche (`print_stats.info`) n'existe que si le
+  trancheur envoie `SET_PRINT_STATS_INFO`. `server.files.metadata` donne `estimated_time`.
+- **Webcam** : `server.webcams.list` donne ce que l'utilisateur a saisi dans Mainsail ou Fluidd, souvent
+  relatif au serveur web (`/webcam/?action=snapshot`, port 80, pas 7125) ou nommant le Pi lui-même
+  (`http://localhost:8080/...`) : réécrire l'hôte. Ne jamais envoyer la clé d'API à la webcam.
+- Sur le simulateur, `printer.firmware_restart` et `printer.restart` ne savent pas réinitialiser le
+  micro-contrôleur simulé (Klipper reste en `startup` ou passe en `error` « Failed automated reset of
+  MCU ») : redémarrer le conteneur. Un `heater_generic` dont le capteur simulé lit 103 °C pour un
+  `max_temp` de 80 provoque un vrai shutdown « ADC out of range » (enregistré dans `errors.json`).
+- **Choix de conception** (13/10/2026) : mêmes couples et même doctrine de sécurité qu'OctoPrint
+  (`device-temperature-sensor/decimal` en lecture seule, pas de bouton d'annulation sur l'appareil),
+  ventilateur en `fan/percent` lecture seule (rendu en valeur par le front), couches en
+  `counter-sensor/integer`. Pas d'arrêt d'urgence exposé ; « Redémarrer Klipper » (`FIRMWARE_RESTART`,
+  avec confirmation) seulement après un shutdown. Macros : un nom seulement, parmi celles que Klipper
+  liste, sans les macros privées `_…` ; la liste est montrée par « Tester la connexion » (aucune
+  source dynamique pour une liste de macros dans un champ de scène).

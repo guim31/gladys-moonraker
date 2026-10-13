@@ -1,61 +1,191 @@
-# Demo Devices Template
+# Moonraker (Klipper)
 
-This is the user documentation of the integration. Gladys re-hosts this file
-and shows a permanent **Documentation** link to it in the Configuration screen
-(in the user's language, with English as the fallback) — it is when
-configuring that the user needs it most. Keep the short onboarding hints in
-the `section` blocks of the manifest `config_schema`; put the long
-step-by-step (screenshots, troubleshooting…) here.
+Follow and control your Klipper 3D printers from Gladys through
+[Moonraker](https://moonraker.readthedocs.io), the API server behind Mainsail
+and Fluidd: Voron, RatRig, Sovol, Elegoo, rooted Creality K1 or K2, and every
+printer running Klipper. Everything stays on your local network: Gladys talks
+directly to Moonraker, without any cloud account.
 
-## What you get
+The integration was tested against a real Moonraker driving Klipper with a
+simulated micro-controller (simulavr): real prints, pause, resume,
+cancellation, a print error, an emergency stop, a webcam. **Developed without
+a physical printer: feedback welcome** on the Gladys forum.
 
-Six demo devices show up after installation: a weather station (real data
-from Open-Meteo), a switch, a dimmable light, a smart plug with power
-metering, a motion sensor and a camera.
+## Prerequisites
+
+- Gladys Assistant 5.1 or later.
+- A printer running Klipper and Moonraker (installed with Mainsail or Fluidd,
+  KIAUH, MainsailOS, FluiddPi...), reachable from the Gladys machine on port
+  7125 or through the address of Mainsail or Fluidd.
+- Either a Moonraker that trusts the network of Gladys (`trusted_clients` in
+  `moonraker.conf`, the default of most installs for local networks), or a
+  Moonraker API key.
+- For the webcam image: a webcam declared in Mainsail or Fluidd, with a
+  snapshot address (the default with crowsnest or mjpg-streamer).
 
 ## Configuration
 
 1. Open the **Configuration** tab of the integration.
-2. Set the **latitude** and **longitude** the demo weather station should
-   observe (they default to Paris), and pick your temperature unit.
-   The **refresh interval** sets how often the weather station and the
-   plug's power are read: every 5 minutes by default, every minute at most.
-3. Save: the devices appear in the **Discovery** tab, ready to be added.
+2. In **Moonraker address**, enter the IP address of the printer, for example
+   `192.168.1.50`: the integration then uses port 7125, Moonraker's own.
+   You may also enter the address you open Mainsail or Fluidd with, such as
+   `http://192.168.1.50` (its web server forwards the Moonraker API), or a
+   port of your own (`192.168.1.50:7126`). Prefer an IP address: names like
+   `voron.local` do not resolve inside the container of the integration.
+3. **API key** is only needed when Moonraker does not trust the network of
+   Gladys. Mainsail: **Settings → Authorization**; Fluidd: **Settings →
+   Authentication**; or `http://<printer>:7125/access/api_key` from a trusted
+   machine.
+4. A second or third printer: fill in **Printer 2** and **Printer 3** the same
+   way (one Moonraker each).
+5. **Language** picks the language of the feature names and of the texts the
+   integration creates (French by default). Feature names are set when the
+   device is added to Gladys.
+6. Save. **Test the connection** shows the state of each printer and the list
+   of its macros.
 
-The **Prefer the local connection** toggle drives the demo plug: it reports
-the channel it actually uses as a badge (local or cloud), with an orange dot
-when it runs degraded (local refused, cloud fallback).
+Then add the printer from the **Discovery** tab.
 
-## Actions
+## The printer device
 
-- **Test the weather provider** — performs a live request to Open-Meteo and
-  shows the current temperature and humidity under the button.
-- **Identify a device** — pick one of your devices in the list and it will
-  signal itself (the demo light "blinks" in the logs).
+One device per Moonraker, named after the host name of the printer (`voron`,
+`mainsailos`...), or "Klipper". Values arrive live from Moonraker (Klipper
+pushes its changes several times a second); the integration hands them to
+Gladys at most every 5 seconds, state changes at once.
 
-## Scenes
+| Feature                  | What it shows                                                                                                                                                                                   |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| State                    | Ready, Printing, Paused, Finished, Cancelled, Print error, Klipper stopped (shutdown), Klipper error, Klipper starting, Klipper disconnected, Moonraker unreachable, API key missing or refused |
+| File                     | The file being printed, or the last one                                                                                                                                                         |
+| Progress                 | Print progress, as on the screen of the printer (100 % kept after a finished print)                                                                                                             |
+| Elapsed time             | Since the start of the print, in minutes                                                                                                                                                        |
+| Time left                | From the slicer estimate when the file has one, otherwise extrapolated from the progress, in minutes (0 at rest)                                                                                |
+| Layer, Total layers      | When the slicer sends them (`SET_PRINT_STATS_INFO`, as PrusaSlicer, OrcaSlicer and SuperSlicer setups for Klipper do); 0 otherwise                                                              |
+| Nozzle, Nozzle 2, Bed... | Temperatures, in whole degrees: every extruder, the heated bed, each `heater_generic` (a chamber...)                                                                                            |
+| ... (target)             | Targets, read only: heat through the widget or the scene actions                                                                                                                                |
+| Temperature sensors      | Each `temperature_sensor` and `temperature_fan` of Klipper (Raspberry Pi, MCU, chamber...), up to six                                                                                           |
+| Part cooling fan         | Speed of the `[fan]`, in percent                                                                                                                                                                |
+| Pause, Resume            | Push buttons                                                                                                                                                                                    |
+| Webcam                   | The snapshot of the first webcam of Mainsail or Fluidd, refreshed every minute                                                                                                                  |
 
-The integration adds its own cards to the scene editor (Gladys 5.1 or
-later), under the **Integrations** category:
+There is deliberately no **cancel** button on the device: one tap without
+confirmation would ruin a print. Cancelling is offered by the widget (with a
+confirmation) and by the scenes. Temperatures and targets are read only too:
+a printer heater can never be started by mistake from the dashboard, nor by
+HomeKit, Alexa or Google. Heating goes through the widget (preheat, cool
+down) and the scene actions. They are "device temperatures" for Gladys: they
+never count in the temperature of the room. The bounds of each heater are
+Klipper's own `max_temp`.
 
-- **Motion detected** (trigger) — starts the scene when a demo motion sensor
-  sees something move. Optionally pick the sensor and what moved (person,
-  animal); left empty, any detection matches. The following actions can
-  read what moved with `{{triggerEvent.data.target}}`.
-- **Identify a device** (action) — makes the chosen device signal itself.
-  It returns whether the device could signal itself, so the following
-  actions can depend on it.
+What the printer has (heaters, sensors, fan, webcam) is read from Klipper at
+every connection. When it changes, Gladys offers to update the device in the
+**Discovery** tab.
 
-## Dashboard
+## Dashboard widget
 
-Add the **Demo status** widget to a dashboard: it shows the live
-temperature of the weather station and the power of the office plug, the
-connection the plug currently uses (orange when degraded) and the observed
-location. Its **Identify the light** button makes the demo light signal
-itself.
+Add the **Klipper 3D print** widget to a dashboard and pick the printer in its
+settings. It shows:
+
+- the progress gauge, the time left, the nozzle and bed temperatures (live);
+- the state, the file, the layer, the elapsed time, the expected end time,
+  the active targets;
+- the buttons that matter at the moment: **Pause** or **Resume** and
+  **Cancel** (asks for a confirmation) during a print; **Preheat** and, when
+  something heats, **Cool down** at rest; **Restart Klipper** (asks for a
+  confirmation) after Klipper stopped on an error.
+
+The preheat temperatures are widget settings (200 °C and 60 °C by default,
+PLA). There is no emergency stop button: Klipper's emergency stop is for
+someone standing next to the printer.
+
+## Scene triggers
+
+In the **Integrations** category of the scene editor. Each one can be limited
+to one printer.
+
+- **Print started**: variables printer name, file.
+- **Print finished**: variables printer name, file, print time (as text, like
+  `1 h 05 min`, and in minutes).
+- **Print failed or cancelled**: can be limited to one reason (cancelled,
+  error). An error includes Klipper stopping during the print. Variables
+  printer name, file, print time, reason.
+- **Print paused**: from Gladys, Mainsail, Fluidd, the screen of the printer
+  or a filament sensor. Variables printer name, file, elapsed time.
+- **Klipper stopped on an error**: Klipper went into shutdown or error (heater
+  fault, lost micro-controller, emergency stop). Variables printer name,
+  Klipper's message (for example `MCU 'mcu' shutdown: ADC out of range`).
+
+Variables are read in the next actions with, for example,
+`{{triggerEvent.data.file}}` and `{{triggerEvent.data.duration}}`.
+
+## Scene actions
+
+- **Pause, resume or cancel a print**: returns **Applied** false when there
+  was nothing to pause, resume or cancel (the scene goes on).
+- **Preheat the printer**: targets of every nozzle and of the bed, 200 °C and
+  60 °C by default, within the `max_temp` of each heater. Refused during a
+  print (Applied: false): a scene preheating at a fixed time never touches a
+  running print.
+- **Turn the heaters off**: `TURN_OFF_HEATERS`, also during a print (which
+  then fails).
+- **Run a Klipper macro**: runs a G-code macro of the printer by its name,
+  without parameters, for example `LIGHTS_ON`. Only the macros Klipper lists
+  are accepted (see **Test the connection**); private macros (whose name
+  starts with `_`) and free G-code are refused. Applied: false when Klipper is
+  not ready.
+
+A command Klipper takes long to acknowledge (a pause waits for the moves in
+its queue, a macro may heat for minutes) is taken as accepted after
+15 seconds.
+
+## Scene examples
+
+- **Print finished → notification**: trigger Print finished, action "Send a
+  message": `{{triggerEvent.data.file}} done in {{triggerEvent.data.duration}}`.
+- **Klipper stopped → alert**: trigger Klipper stopped on an error, message
+  `Printer stopped: {{triggerEvent.data.message}}`.
+- **Smoke detected → stop everything**: trigger on the smoke detector,
+  actions Pause, resume or cancel a print (cancel), then Turn the heaters off,
+  then switch the smart plug of the printer off.
+- **Ready at breakfast**: at 7 am on weekdays, Preheat the printer (no effect
+  if a print is running).
+- **Lights for the webcam**: Print started → Run a Klipper macro `LIGHTS_ON`,
+  or switch the workshop light on; Print finished or failed → off.
 
 ## Troubleshooting
 
-The integration logs everything it does: check the integration logs from the
-Gladys UI (or `docker logs` on the host) with `LOG_LEVEL=debug` for the full
-detail.
+- **Moonraker unreachable**: check the address from the Gladys machine
+  (`curl http://192.168.1.50:7125/server/info`). Use an IP address rather than
+  `voron.local`. Behind Mainsail or Fluidd, enter their address without the
+  port.
+- **API key missing or refused**: Moonraker does not trust the network of
+  Gladys. Paste its API key, or add the network of Gladys to
+  `trusted_clients` in `moonraker.conf`. A regenerated key stops the old one.
+- **Klipper stopped (shutdown)** or **Klipper error**: Klipper needs your
+  attention (its message is in the trigger, and in Mainsail or Fluidd). Once
+  the cause is fixed, **Restart Klipper** in the widget runs
+  `FIRMWARE_RESTART`.
+- **Layer stays at 0**: the slicer does not send `SET_PRINT_STATS_INFO`; add
+  it to the layer change G-code of the slicer (see the Klipper documentation).
+- **Time left is off**: without slicer metadata, it is extrapolated from the
+  file progress, rough at the beginning of a print.
+- **No webcam image**: the image must be a JPEG of at most 150 KB (a limit of
+  Gladys): lower the resolution of the webcam. A snapshot address relative to
+  Mainsail (`/webcam/?action=snapshot`) is read on port 80 of the printer.
+- Logs: in the page of the integration in Gladys, or `docker logs` on the
+  host. `LOG_LEVEL=debug` gives the details. The API key never appears in the
+  logs.
+
+## Limits
+
+- Three Moonraker instances at most.
+- No file upload, no print start from Gladys, no free G-code, no timelapse,
+  no Spoolman, no power devices of Moonraker.
+- The webcam image is a snapshot refreshed every minute (and on demand), not
+  a video stream; only the first webcam is used.
+- An event shorter than a quarter of a second may be merged with the next one
+  by Klipper (a print failing at once is reported as failed, without
+  "started").
+- Developed without a physical printer (Klipper with a simulated
+  micro-controller was used): feedback welcome.
+- Not affiliated with the Klipper or Moonraker projects.

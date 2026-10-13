@@ -1,0 +1,22 @@
+{
+  "webcams": [
+    {
+      "name": "printer_cam",
+      "enabled": true,
+      "icon": "mdiWebcam",
+      "aspect_ratio": "4:3",
+      "target_fps": 15,
+      "target_fps_idle": 5,
+      "location": "printer",
+      "service": "mjpegstreamer-adaptive",
+      "stream_url": "/webcam/?action=stream",
+      "snapshot_url": "http://localhost:8080/?action=snapshot",
+      "flip_horizontal": false,
+      "flip_vertical": false,
+      "rotation": 0,
+      "source": "config",
+      "extra_data": {},
+      "uid": "968110d8-620a-5bd7-8449-107f4f8db79b"
+    }
+  ]
+}

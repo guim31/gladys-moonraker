@@ -1,67 +1,206 @@
-# Template de démonstration
+# Moonraker (Klipper)
 
-Ceci est la documentation utilisateur de l'intégration. Gladys ré-héberge ce
-fichier et affiche un lien **Documentation** permanent vers lui dans l'écran
-de configuration (dans la langue de l'utilisateur, avec l'anglais en repli) —
-c'est au moment de configurer que l'utilisateur en a le plus besoin. Gardez
-les courtes indications d'accueil dans les blocs `section` du `config_schema`
-du manifest ; mettez ici le pas-à-pas détaillé (captures d'écran, dépannage…).
+Suivez et pilotez vos imprimantes 3D Klipper depuis Gladys grâce à
+[Moonraker](https://moonraker.readthedocs.io), le serveur d'API derrière
+Mainsail et Fluidd : Voron, RatRig, Sovol, Elegoo, Creality K1 ou K2 rootées,
+et toute imprimante sous Klipper. Tout reste sur votre réseau local : Gladys
+parle directement à Moonraker, sans compte cloud.
 
-## Ce que vous obtenez
+L'intégration a été testée contre un vrai Moonraker pilotant Klipper avec un
+micro-contrôleur simulé (simulavr) : vraies impressions, pause, reprise,
+annulation, erreur d'impression, arrêt d'urgence, webcam. **Développée sans
+imprimante physique : vos retours sont les bienvenus** sur le forum Gladys.
 
-Six appareils de démonstration apparaissent après l'installation : une
-station météo (vraies données Open-Meteo), un interrupteur, une lampe
-variable, une prise connectée avec mesure de puissance, un détecteur de
-mouvement et une caméra.
+## Prérequis
+
+- Gladys Assistant 5.1 ou plus récent.
+- Une imprimante sous Klipper et Moonraker (installés avec Mainsail ou
+  Fluidd, KIAUH, MainsailOS, FluiddPi…), joignable depuis la machine de Gladys
+  sur le port 7125 ou par l'adresse de Mainsail ou Fluidd.
+- Soit un Moonraker qui fait confiance au réseau de Gladys (`trusted_clients`
+  dans `moonraker.conf`, le réglage par défaut de la plupart des installations
+  pour les réseaux locaux), soit une clé d'API de Moonraker.
+- Pour l'image de la webcam : une webcam déclarée dans Mainsail ou Fluidd,
+  avec une adresse de capture (le cas par défaut avec crowsnest ou
+  mjpg-streamer).
 
 ## Configuration
 
 1. Ouvrez l'onglet **Configuration** de l'intégration.
-2. Renseignez la **latitude** et la **longitude** que la station météo de
-   démonstration doit observer (Paris par défaut), et choisissez votre unité
-   de température. L'**intervalle de rafraîchissement** règle la fréquence
-   de lecture de la station météo et de la puissance de la prise : toutes
-   les 5 minutes par défaut, toutes les minutes au plus.
-3. Enregistrez : les appareils apparaissent dans l'onglet **Découverte**,
-   prêts à être ajoutés.
+2. Dans **Adresse de Moonraker**, saisissez l'adresse IP de l'imprimante, par
+   exemple `192.168.1.50` : l'intégration utilise alors le port 7125, celui de
+   Moonraker. Vous pouvez aussi saisir l'adresse avec laquelle vous ouvrez
+   Mainsail ou Fluidd, comme `http://192.168.1.50` (son serveur web relaie
+   l'API de Moonraker), ou un port à vous (`192.168.1.50:7126`). Préférez une
+   adresse IP : les noms comme `voron.local` ne se résolvent pas dans le
+   conteneur de l'intégration.
+3. **Clé d'API** n'est utile que si Moonraker ne fait pas confiance au réseau
+   de Gladys. Mainsail : **Paramètres → Autorisation** ; Fluidd :
+   **Paramètres → Authentification** ; ou `http://<imprimante>:7125/access/api_key`
+   depuis une machine de confiance.
+4. Une deuxième ou troisième imprimante : remplissez **Imprimante 2** et
+   **Imprimante 3** de la même façon (un Moonraker chacune).
+5. **Langue** choisit la langue des noms de fonctionnalités et des textes
+   créés par l'intégration (français par défaut). Les noms des fonctionnalités
+   sont fixés à l'ajout de l'appareil dans Gladys.
+6. Enregistrez. **Tester la connexion** affiche l'état de chaque imprimante et
+   la liste de ses macros.
 
-Le réglage **Préférer la connexion locale** pilote la prise de
-démonstration : elle affiche en badge le canal réellement utilisé (local ou
-cloud), avec un point orange quand elle fonctionne en mode dégradé (local
-refusé, bascule cloud).
+Ajoutez ensuite l'imprimante depuis l'onglet **Découverte**.
 
-## Actions
+## L'appareil imprimante
 
-- **Tester le fournisseur météo** — effectue une requête en direct vers
-  Open-Meteo et affiche la température et l'humidité actuelles sous le
-  bouton.
-- **Identifier un appareil** — choisissez un de vos appareils dans la liste
-  et il se signale (la lampe de démonstration « clignote » dans les logs).
+Un appareil par Moonraker, nommé d'après le nom d'hôte de l'imprimante
+(`voron`, `mainsailos`…), ou « Klipper ». Les valeurs arrivent en direct de
+Moonraker (Klipper pousse ses changements plusieurs fois par seconde) ;
+l'intégration les transmet à Gladys au plus toutes les 5 secondes, les
+changements d'état immédiatement.
 
-## Scènes
+| Fonctionnalité            | Ce qu'elle affiche                                                                                                                                                                                               |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| État                      | Prête, Impression, En pause, Terminée, Annulée, Erreur d'impression, Klipper arrêté (shutdown), Klipper en erreur, Démarrage de Klipper, Klipper déconnecté, Moonraker injoignable, Clé d'API absente ou refusée |
+| Fichier                   | Le fichier en cours d'impression, ou le dernier                                                                                                                                                                  |
+| Progression               | Avancement de l'impression, comme sur l'écran de l'imprimante (100 % conservé après une impression terminée)                                                                                                     |
+| Temps écoulé              | Depuis le début de l'impression, en minutes                                                                                                                                                                      |
+| Temps restant             | D'après l'estimation du trancheur quand le fichier en a une, sinon extrapolé de la progression, en minutes (0 au repos)                                                                                          |
+| Couche, Nombre de couches | Quand le trancheur les envoie (`SET_PRINT_STATS_INFO`, comme les profils Klipper de PrusaSlicer, OrcaSlicer et SuperSlicer) ; 0 sinon                                                                            |
+| Buse, Buse 2, Plateau…    | Températures, en degrés entiers : chaque extrudeur, le plateau chauffant, chaque `heater_generic` (un caisson…)                                                                                                  |
+| … (consigne)              | Consignes, en lecture seule : chauffer par le widget ou les actions de scène                                                                                                                                     |
+| Capteurs de température   | Chaque `temperature_sensor` et `temperature_fan` de Klipper (Raspberry Pi, MCU, caisson…), six au plus                                                                                                           |
+| Ventilateur de pièce      | Vitesse du `[fan]`, en pourcentage                                                                                                                                                                               |
+| Pause, Reprise            | Boutons poussoirs                                                                                                                                                                                                |
+| Webcam                    | La capture de la première webcam de Mainsail ou Fluidd, rafraîchie chaque minute                                                                                                                                 |
 
-L'intégration ajoute ses propres cartes à l'éditeur de scènes (Gladys 5.1
-ou plus récent), dans la catégorie **Intégrations** :
+Il n'y a volontairement pas de bouton **annuler** sur l'appareil : un appui
+sans confirmation ruinerait une impression. L'annulation est proposée par le
+widget (avec confirmation) et par les scènes. Les températures et consignes
+sont aussi en lecture seule : une chauffe d'imprimante ne peut pas être lancée
+par erreur depuis le tableau de bord, ni par HomeKit, Alexa ou Google. On
+chauffe par le widget (préchauffer, refroidir) et les actions de scène. Ce sont
+des « températures d'appareil » pour Gladys : elles ne comptent jamais dans la
+température de la pièce. Les bornes de chaque chauffe sont le `max_temp` de
+Klipper.
 
-- **Mouvement détecté** (déclencheur) — lance la scène quand un détecteur
-  de démonstration voit bouger quelque chose. Choisissez éventuellement le
-  détecteur et ce qui a bougé (personne, animal) ; laissés vides, toute
-  détection correspond. Les actions suivantes peuvent lire ce qui a bougé
-  avec `{{triggerEvent.data.target}}`.
-- **Identifier un appareil** (action) — fait se signaler l'appareil choisi.
-  Elle indique si l'appareil a pu se signaler, pour que les actions
-  suivantes puissent en dépendre.
+Ce que possède l'imprimante (chauffes, capteurs, ventilateur, webcam) est lu
+dans Klipper à chaque connexion. Quand cela change, Gladys propose de mettre à
+jour l'appareil dans l'onglet **Découverte**.
 
-## Tableau de bord
+## Widget de tableau de bord
 
-Ajoutez le widget **État de la démo** à un tableau de bord : il affiche en
-direct la température de la station météo et la puissance de la prise du
-bureau, la connexion utilisée par la prise (en orange si dégradée) et la
-position observée. Son bouton **Identifier la lampe** fait se signaler la
-lampe de démonstration.
+Ajoutez le widget **Impression 3D Klipper** à un tableau de bord et
+choisissez l'imprimante dans ses réglages. Il affiche :
+
+- la jauge de progression, le temps restant, les températures de la buse et
+  du plateau (en direct) ;
+- l'état, le fichier, la couche, le temps écoulé, l'heure de fin prévue, les
+  consignes actives ;
+- les boutons utiles au moment : **Pause** ou **Reprendre** et **Annuler**
+  (demande confirmation) pendant une impression ; **Préchauffer** et, quand
+  quelque chose chauffe, **Refroidir** au repos ; **Redémarrer Klipper**
+  (demande confirmation) après un arrêt de Klipper sur une erreur.
+
+Les températures de préchauffage sont des réglages du widget (200 °C et 60 °C
+par défaut, PLA). Il n'y a pas de bouton d'arrêt d'urgence : l'arrêt
+d'urgence de Klipper est pour quelqu'un qui se tient à côté de l'imprimante.
+
+## Déclencheurs de scène
+
+Dans la catégorie **Intégrations** de l'éditeur de scènes. Chacun peut être
+limité à une imprimante.
+
+- **Impression démarrée** : variables nom de l'imprimante, fichier.
+- **Impression terminée** : variables nom de l'imprimante, fichier, durée
+  d'impression (en texte, comme `1 h 05 min`, et en minutes).
+- **Impression échouée ou annulée** : peut être limité à une raison (annulée,
+  erreur). Une erreur comprend l'arrêt de Klipper pendant l'impression.
+  Variables nom de l'imprimante, fichier, durée d'impression, raison.
+- **Impression en pause** : par Gladys, Mainsail, Fluidd, l'écran de
+  l'imprimante ou un capteur de filament. Variables nom de l'imprimante,
+  fichier, temps écoulé.
+- **Klipper arrêté sur une erreur** : Klipper est passé en arrêt (shutdown)
+  ou en erreur (défaut de chauffe, carte perdue, arrêt d'urgence). Variables
+  nom de l'imprimante, message de Klipper (par exemple
+  `MCU 'mcu' shutdown: ADC out of range`).
+
+Les variables se lisent dans les actions suivantes avec, par exemple,
+`{{triggerEvent.data.file}}` et `{{triggerEvent.data.duration}}`.
+
+## Actions de scène
+
+- **Mettre en pause, reprendre ou annuler une impression** : renvoie
+  **Appliqué** à faux quand il n'y avait rien à mettre en pause, reprendre ou
+  annuler (la scène continue).
+- **Préchauffer l'imprimante** : consignes de toutes les buses et du plateau,
+  200 °C et 60 °C par défaut, dans la limite du `max_temp` de chaque chauffe.
+  Refusé pendant une impression (Appliqué : faux) : une scène qui préchauffe à
+  heure fixe ne touche jamais une impression en cours.
+- **Couper les chauffes** : `TURN_OFF_HEATERS`, aussi pendant une impression
+  (qui échoue alors).
+- **Lancer une macro Klipper** : lance une macro G-code de l'imprimante par
+  son nom, sans paramètre, par exemple `LIGHTS_ON`. Seules les macros listées
+  par Klipper sont acceptées (voir **Tester la connexion**) ; les macros
+  privées (dont le nom commence par `_`) et le G-code libre sont refusés.
+  Appliqué : faux quand Klipper n'est pas prêt.
+
+Une commande que Klipper tarde à confirmer (une pause attend les mouvements
+de sa file, une macro peut chauffer plusieurs minutes) est considérée comme
+acceptée au bout de 15 secondes.
+
+## Exemples de scènes
+
+- **Impression terminée → notification** : déclencheur Impression terminée,
+  action « Envoyer un message » :
+  `{{triggerEvent.data.file}} terminé en {{triggerEvent.data.duration}}`.
+- **Klipper arrêté → alerte** : déclencheur Klipper arrêté sur une erreur,
+  message `Imprimante arrêtée : {{triggerEvent.data.message}}`.
+- **Fumée détectée → tout arrêter** : déclencheur sur le détecteur de fumée,
+  actions Mettre en pause, reprendre ou annuler une impression (annuler), puis
+  Couper les chauffes, puis éteindre la prise connectée de l'imprimante.
+- **Prête au petit déjeuner** : à 7 h en semaine, Préchauffer l'imprimante
+  (sans effet si une impression tourne).
+- **Lumière pour la webcam** : Impression démarrée → Lancer une macro Klipper
+  `LIGHTS_ON`, ou allumer la lumière de l'atelier ; Impression terminée ou
+  échouée → l'éteindre.
 
 ## Dépannage
 
-L'intégration journalise tout ce qu'elle fait : consultez les logs de
-l'intégration depuis l'interface Gladys (ou `docker logs` sur l'hôte) avec
-`LOG_LEVEL=debug` pour le détail complet.
+- **Moonraker injoignable** : vérifiez l'adresse depuis la machine de Gladys
+  (`curl http://192.168.1.50:7125/server/info`). Utilisez une adresse IP
+  plutôt que `voron.local`. Derrière Mainsail ou Fluidd, saisissez leur
+  adresse sans le port.
+- **Clé d'API absente ou refusée** : Moonraker ne fait pas confiance au réseau
+  de Gladys. Collez sa clé d'API, ou ajoutez le réseau de Gladys à
+  `trusted_clients` dans `moonraker.conf`. Une clé régénérée invalide
+  l'ancienne.
+- **Klipper arrêté (shutdown)** ou **Klipper en erreur** : Klipper demande
+  votre attention (son message est dans le déclencheur, et dans Mainsail ou
+  Fluidd). Une fois la cause corrigée, **Redémarrer Klipper** dans le widget
+  lance `FIRMWARE_RESTART`.
+- **La couche reste à 0** : le trancheur n'envoie pas `SET_PRINT_STATS_INFO` ;
+  ajoutez-le au G-code de changement de couche du trancheur (voir la
+  documentation de Klipper).
+- **Le temps restant est approximatif** : sans les métadonnées du trancheur,
+  il est extrapolé de la progression du fichier, peu fiable en début
+  d'impression.
+- **Pas d'image de webcam** : l'image doit être un JPEG de 150 Ko au plus
+  (limite de Gladys) : baissez la résolution de la webcam. Une adresse de
+  capture relative à Mainsail (`/webcam/?action=snapshot`) est lue sur le
+  port 80 de l'imprimante.
+- Logs : dans la page de l'intégration de Gladys, ou `docker logs` sur l'hôte.
+  `LOG_LEVEL=debug` donne le détail. La clé d'API n'apparaît jamais dans les
+  logs.
+
+## Limites
+
+- Trois Moonraker au plus.
+- Pas d'envoi de fichier, pas de lancement d'impression depuis Gladys, pas de
+  G-code libre, pas de timelapse, pas de Spoolman, pas des prises (« power
+  devices ») de Moonraker.
+- L'image de la webcam est une capture rafraîchie chaque minute (et à la
+  demande), pas un flux vidéo ; seule la première webcam est utilisée.
+- Un événement plus court qu'un quart de seconde peut être fusionné avec le
+  suivant par Klipper (une impression qui échoue aussitôt est signalée en
+  échec, sans « démarrée »).
+- Développée sans imprimante physique (Klipper avec un micro-contrôleur
+  simulé a servi) : vos retours sont les bienvenus.
+- Sans lien avec les projets Klipper et Moonraker.
