@@ -250,7 +250,8 @@ export class RpcLink extends EventEmitter {
         return;
       }
       const reason = new MoonrakerError('unreachable', 'No message from Moonraker for a minute');
-      logger.warn(`${reason.message} (${this.url}), reconnecting`);
+      // The printer logs the loss once (warn); here, only for debugging.
+      logger.debug(`${reason.message} (${this.url}), reconnecting`);
       this.#drop(reason);
       this.#scheduleRetry(reason);
     }, this.timings.idleTimeout);
@@ -297,9 +298,9 @@ export class RpcLink extends EventEmitter {
             this.timings.reconnectMax,
             this.timings.reconnectMin * 2 ** Math.min(this.failures - 1, 10),
           );
-    if (this.failures === 1 || this.failures % 10 === 0) {
-      logger.info(`Link to ${this.url} down (${reason.message}), retrying in ${delay} ms`);
-    }
+    // Every attempt at debug only: the printer logs the first failure and the
+    // recovery, once each.
+    logger.debug(`Link to ${this.url} down (${reason.message}), retrying in ${delay} ms`);
     clearTimeout(this.retryTimer);
     this.retryTimer = setTimeout(() => {
       this.retryTimer = null;
