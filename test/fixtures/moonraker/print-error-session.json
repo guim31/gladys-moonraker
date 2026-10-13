@@ -1,0 +1,102 @@
+[
+  {
+    "t": 182,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_gcode_response",
+      "params": ["File opened:tiny.gcode Size:444"]
+    }
+  },
+  {
+    "t": 182,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_gcode_response",
+      "params": ["File selected"]
+    }
+  },
+  {
+    "t": 186,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_gcode_response",
+      "params": [
+        "// Extrude below minimum temp\n// See the 'min_extrude_temp' config option for details"
+      ]
+    }
+  },
+  {
+    "t": 186,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_gcode_response",
+      "params": ["!! Extrude below minimum temp"]
+    }
+  },
+  {
+    "t": 428,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "filename": "tiny.gcode",
+            "total_duration": 0.0018175310106016695,
+            "state": "error",
+            "message": "Extrude below minimum temp\nSee the 'min_extrude_temp' config option for details",
+            "info": {
+              "total_layer": 2,
+              "current_layer": 1
+            }
+          },
+          "virtual_sdcard": {
+            "progress": 0.5247747747747747
+          },
+          "display_status": {
+            "progress": 0.5247747747747747
+          }
+        },
+        381811.88438355
+      ]
+    }
+  },
+  {
+    "t": 474,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_history_changed",
+      "params": [
+        {
+          "action": "added",
+          "job": {
+            "filename": "tiny.gcode",
+            "status": "in_progress",
+            "print_duration": 0,
+            "total_duration": 0.0018175310106016695,
+            "filament_used": 0
+          }
+        }
+      ]
+    }
+  },
+  {
+    "t": 532,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_history_changed",
+      "params": [
+        {
+          "action": "finished",
+          "job": {
+            "filename": "tiny.gcode",
+            "status": "error",
+            "print_duration": 0,
+            "total_duration": 0.0018175310106016695,
+            "filament_used": 0
+          }
+        }
+      ]
+    }
+  }
+]

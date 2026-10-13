@@ -220,6 +220,43 @@ test('the recorded print session fires the triggers in order', async (t) => {
   assert.equal(fake.lastState(featureId('state')), 'Klipper arrêté (shutdown)');
 });
 
+function replay(server, name) {
+  return (async () => {
+    for (const { message } of fixture(name)) {
+      if (message.method === 'notify_status_update') {
+        server.update(message.params[0]);
+      } else {
+        server.notify(message.method, message.params);
+      }
+      await settle(2);
+    }
+    await settle();
+  })();
+}
+
+test('recorded sessions: a finished print, a print failing at once', async (t) => {
+  const server = createMoonraker({ printer: 'rich' });
+  const world = await createWorld({ servers: [server] });
+  t.after(() => world.app.stop());
+  const fake = world.gladys.fake;
+  // Klipper refused to extrude cold: standby to error in a single update.
+  await replay(server, 'print-error-session.json');
+  assert.deepEqual(
+    fake.sceneEvents.map((e) => [e.key, e.data.file, e.data.reason ?? null]),
+    [['print_failed', 'tiny.gcode', 'error']],
+  );
+  assert.equal(fake.lastState(featureId('state')), "Erreur d'impression");
+  // The same file, without extrusion, printed to the end.
+  await replay(server, 'print-complete-session.json');
+  assert.deepEqual(
+    fake.sceneEvents.slice(1).map((e) => e.key),
+    ['print_started', 'print_done'],
+  );
+  assert.equal(fake.lastState(featureId('state')), 'Terminée');
+  assert.equal(fake.lastState(featureId('progress')), 100);
+  assert.equal(fake.lastState(featureId('layer')), 2);
+});
+
 test('states are published again when the user adds the device', async (t) => {
   const world = await createWorld();
   t.after(() => world.app.stop());

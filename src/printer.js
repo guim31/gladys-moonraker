@@ -337,20 +337,21 @@ export class PrinterLink extends EventEmitter {
     if (before === null || before === now) {
       return; // first sight of the printer: nothing happened, it just is
     }
+    // Klipper enters `complete`, `cancelled` and `error` only when a job ends,
+    // so these fire even without `printing` seen before: a print failing at
+    // once goes from `standby` to `error` in a single update (recorded), and
+    // a print may end while Moonraker was out of reach. `standby` after a
+    // job (SDCARD_RESET_FILE, a restart) tells nothing: no event.
     if (now === 'printing' && before !== 'paused') {
       this.emit('print', { type: 'started', file, seconds: null, reason: null });
     } else if (now === 'paused' && before === 'printing') {
       this.emit('print', { type: 'paused', file, seconds, reason: null });
-    } else if (ACTIVE_STATES.has(before)) {
-      if (now === 'complete') {
-        this.emit('print', { type: 'done', file, seconds, reason: null });
-      } else if (now === 'cancelled') {
-        this.emit('print', { type: 'failed', file, seconds, reason: 'cancelled' });
-      } else if (now === 'error') {
-        this.emit('print', { type: 'failed', file, seconds, reason: 'error' });
-      }
-      // `standby` (SDCARD_RESET_FILE, or a printer seen again after an
-      // outage): the outcome is unknown, no event.
+    } else if (now === 'complete') {
+      this.emit('print', { type: 'done', file, seconds, reason: null });
+    } else if (now === 'cancelled') {
+      this.emit('print', { type: 'failed', file, seconds, reason: 'cancelled' });
+    } else if (now === 'error') {
+      this.emit('print', { type: 'failed', file, seconds, reason: 'error' });
     }
   }
 

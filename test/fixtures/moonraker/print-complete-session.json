@@ -1,0 +1,145 @@
+[
+  {
+    "t": 96,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_gcode_response",
+      "params": ["File opened:tiny.gcode Size:414"]
+    }
+  },
+  {
+    "t": 102,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_gcode_response",
+      "params": ["File selected"]
+    }
+  },
+  {
+    "t": 343,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 0.24241874599829316,
+            "state": "printing",
+            "message": "",
+            "info": {
+              "total_layer": 2,
+              "current_layer": 2
+            }
+          },
+          "virtual_sdcard": {
+            "progress": 0.9323671497584541,
+            "is_active": true
+          },
+          "display_status": {
+            "progress": 0.5
+          }
+        },
+        382068.161430748
+      ]
+    }
+  },
+  {
+    "t": 369,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_history_changed",
+      "params": [
+        {
+          "action": "added",
+          "job": {
+            "filename": "tiny.gcode",
+            "status": "in_progress",
+            "print_duration": 0,
+            "total_duration": 0.24241874599829316,
+            "filament_used": 0
+          }
+        }
+      ]
+    }
+  },
+  {
+    "t": 592,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 0.49336627701995894
+          }
+        },
+        382068.412378279
+      ]
+    }
+  },
+  {
+    "t": 10619,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 10.52111796400277
+          }
+        },
+        382078.440129966
+      ]
+    }
+  },
+  {
+    "t": 16017,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_gcode_response",
+      "params": ["Done printing file"]
+    }
+  },
+  {
+    "t": 16135,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_status_update",
+      "params": [
+        {
+          "print_stats": {
+            "total_duration": 15.918869784974959,
+            "state": "complete"
+          },
+          "virtual_sdcard": {
+            "progress": 1,
+            "is_active": false
+          },
+          "display_status": {
+            "progress": 1
+          }
+        },
+        382083.956045585
+      ]
+    }
+  },
+  {
+    "t": 16173,
+    "message": {
+      "jsonrpc": "2.0",
+      "method": "notify_history_changed",
+      "params": [
+        {
+          "action": "finished",
+          "job": {
+            "filename": "tiny.gcode",
+            "status": "completed",
+            "print_duration": 0,
+            "total_duration": 15.918869784974959,
+            "filament_used": 0
+          }
+        }
+      ]
+    }
+  }
+]

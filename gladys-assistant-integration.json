@@ -41,10 +41,10 @@
         "es": "Dirección de Moonraker"
       },
       "placeholder": {
-        "en": "192.168.1.50 or http://voron.local",
-        "fr": "192.168.1.50 ou http://voron.local",
-        "de": "192.168.1.50 oder http://voron.local",
-        "es": "192.168.1.50 o http://voron.local"
+        "en": "e.g. 192.168.1.50",
+        "fr": "ex. 192.168.1.50",
+        "de": "z. B. 192.168.1.50",
+        "es": "p. ej. 192.168.1.50"
       },
       "required": false,
       "default": ""
@@ -64,8 +64,7 @@
         "de": "Mainsail: Einstellungen, Autorisierung, API-Schlüssel. Fluidd: Einstellungen, Authentifizierung. Leer lassen in einem vertrauenswürdigen Netzwerk.",
         "es": "Mainsail: Ajustes, Autorización, clave de API. Fluidd: Ajustes, Autenticación. Déjela vacía en una red de confianza."
       },
-      "required": false,
-      "default": ""
+      "required": false
     },
     {
       "key": "section_2",
@@ -87,10 +86,10 @@
         "es": "Dirección de Moonraker 2"
       },
       "placeholder": {
-        "en": "192.168.1.50 or http://voron.local",
-        "fr": "192.168.1.50 ou http://voron.local",
-        "de": "192.168.1.50 oder http://voron.local",
-        "es": "192.168.1.50 o http://voron.local"
+        "en": "e.g. 192.168.1.50",
+        "fr": "ex. 192.168.1.50",
+        "de": "z. B. 192.168.1.50",
+        "es": "p. ej. 192.168.1.50"
       },
       "required": false,
       "default": ""
@@ -104,8 +103,7 @@
         "de": "API-Schlüssel 2 (optional)",
         "es": "Clave de API 2 (opcional)"
       },
-      "required": false,
-      "default": ""
+      "required": false
     },
     {
       "key": "section_3",
@@ -127,10 +125,10 @@
         "es": "Dirección de Moonraker 3"
       },
       "placeholder": {
-        "en": "192.168.1.50 or http://voron.local",
-        "fr": "192.168.1.50 ou http://voron.local",
-        "de": "192.168.1.50 oder http://voron.local",
-        "es": "192.168.1.50 o http://voron.local"
+        "en": "e.g. 192.168.1.50",
+        "fr": "ex. 192.168.1.50",
+        "de": "z. B. 192.168.1.50",
+        "es": "p. ej. 192.168.1.50"
       },
       "required": false,
       "default": ""
@@ -144,8 +142,7 @@
         "de": "API-Schlüssel 3 (optional)",
         "es": "Clave de API 3 (opcional)"
       },
-      "required": false,
-      "default": ""
+      "required": false
     },
     {
       "key": "section_options",
