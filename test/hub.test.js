@@ -558,7 +558,7 @@ test('the webcam: a snapshot through its own address, never with the API key', a
   // Pushed when the device is added, then every minute.
   await fake.deviceCreated(deviceOf(world));
   await settle(40);
-  assert.equal(fake.cameraImages.at(-1).device_external_id, featureId('camera'));
+  assert.equal(fake.cameraImages.at(-1).device_external_id, deviceId());
 
   server.image = Buffer.concat([JPEG, Buffer.alloc(150 * 1024)]);
   const tooBig = await fake.getImage(deviceOf(world));

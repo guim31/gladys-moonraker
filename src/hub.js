@@ -503,7 +503,7 @@ export class Hub {
     }
     try {
       const image = await printer.link.cameraImage(MAX_IMAGE_BYTES);
-      await this.gladys.publishCameraImage(ids.feature('camera'), image);
+      await this.gladys.publishCameraImage(ids.device, image);
     } catch (err) {
       // Once per outage (warn), not once per image round.
       if (printer.cameraError === null) {
