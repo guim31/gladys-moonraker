@@ -8,8 +8,8 @@
     "de": "Verfolge und steuere deine Klipper-3D-Drucker: Fortschritt, Temperaturen, Alarme, Makros.",
     "es": "Siga y controle sus impresoras 3D Klipper: progreso, temperaturas, alertas, macros."
   },
-  "version": "1.0.1",
-  "docker_image": "ghcr.io/guim31/gladys-moonraker:1.0.1",
+  "version": "1.0.2",
+  "docker_image": "ghcr.io/guim31/gladys-moonraker:1.0.2",
   "gladys_version": ">=5.1.0",
   "cover_image": "https://raw.githubusercontent.com/guim31/gladys-moonraker/main/cover.png",
   "categories": ["appliances"],
